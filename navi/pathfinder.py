@@ -28,30 +28,39 @@ def generate_point_cloud(raw_scanline, sensor_pos, sensor_inclination):
     return point_cloud
 
 
-def find_traversable(points, max_slope, min_width):
+def find_traversable(points, max_angle, min_width):
     # TODO: take into account rover inclination
-    chains = []
-    c = []
-    for i in range(len(points)-1):
+    potential_chains = []
+    c = [points[0]]
+    for i in range(1, len(points)-1):
         # evaluating 'sideways' slope between 2 points
         # evaluating if terrain is too steep or is a wall by looking at slope between from the rover head to the point
-        slp = max(
+        slopes = [
+            abs(slope(points[i-1], points[i])),
             abs(slope(points[i], points[i+1])),
             abs(slope([0, 0, 0], points[i])),
-        )
-        if slp <= max_slope:
+        ]
+        if max(slopes) <= math.atan(max_angle):
             c.append(points[i])
         else:
-            if len(c) == 0:
-                chains.append(c)
+            if len(c) > 1:  # don't want empty lists or single point lists
+                potential_chains.append(c)
             c = []
+    c.append(points[-1])  # add last point to the chain
+    if len(c) > 1:  # don't want empty lists or single point lists
+        potential_chains.append(c)
+    print('found', len(potential_chains), 'potential chains')
 
     # culling narrow chains
     # TODO: rover might need to align itself with normal of traversable zone. Ex: tilted doors
-    for c in chains:
+    chains = []
+    for c in potential_chains:
         endpoint1, endpoint2 = c[0], c[-1]
         width = math.sqrt((endpoint2[0]-endpoint1[0])**2 + (endpoint2[1]-endpoint1[1])**2)
-        if width < min_width:
-            chains.remove(c)
-
+        if width > min_width:
+            print('- width OK:', width)
+            chains.append(c)
+        else:
+            print('- width invalid:', width)
+    print('found', len(chains), 'valid chains')
     return chains
