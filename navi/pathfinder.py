@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 
 def normalize(v):
@@ -19,12 +20,15 @@ def sphere2cartesian(distance, inclination, azimuth):
 def slope(point1, point2):
     run = math.sqrt((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2)
     rise = point2[2] - point1[2]
-    return rise/run
+    if run != 0:
+        return rise/run
+    else:
+        return np.inf
 
 
 class Pathfinder:
 
-    def __init__(self, target, sensor_pos, sensor_inclination, min_width, max_angle):
+    def __init__(self, target, sensor_pos, sensor_inclination, min_width, max_angle, step_size):
         self.target = target
 
         # Path picking constraints
@@ -32,10 +36,12 @@ class Pathfinder:
         self.max_angle = max_angle
         self.sensor_pos = sensor_pos  # sensor position relative to the rover
         self.sensor_inclination = sensor_inclination   # sensor tilt (on +X) relative to +Z axis
+        self.step_size = step_size
 
-        self.forks = []  # list of past encountered forks each fork containing untested paths
+        self.nodes = []  # list of past encountered nodes each node containing untested paths
+        self.path_log = []  # stores all paths taken by the rover
 
-    def point_cloud(self, scanline):
+    def point_cloud(self, scanline, rover_pos):
         # TODO: might need to take into account sensor cone_angle
         point_cloud = []  # list of all scanned points
         for data_point in scanline:
@@ -44,12 +50,14 @@ class Pathfinder:
                 self.sensor_inclination,
                 data_point[0],
             )
-            point_cloud.append(coords + self.sensor_pos)
+            point_cloud.append(coords + self.sensor_pos + rover_pos)
         return point_cloud
 
-    def valid_chains(self, points):
+    def eval_traversability(self, points, rover_pos):
         # TODO: take into account rover inclination
         potential_chains = []
+        valid_chains = []
+        invalid_points = [points[0], points[-1]]  # endpoints of scan are considered non-traversable
         c = []
         for i in range(1, len(points) - 1):
             # evaluating 'sideways' slope between 2 points
@@ -57,11 +65,12 @@ class Pathfinder:
             slopes = [
                 abs(slope(points[i - 1], points[i])),
                 abs(slope(points[i], points[i + 1])),
-                abs(slope([0, 0, 0], points[i])),
+                abs(slope(rover_pos, points[i])),
             ]
             if max(slopes) <= math.atan(self.max_angle):
                 c.append(points[i])
             else:  # traversable chain ended, time to save it
+                invalid_points.append(points[i])  # counting invalid points
                 if len(c) > 1:  # don't want empty lists or single point lists
                     potential_chains.append(c)
                 c = []  # empty chain
@@ -71,42 +80,121 @@ class Pathfinder:
 
         # culling narrow chains
         # TODO: rover might need to align itself with normal of traversable zone. Ex: tilted doors
-        chains = []
         for c in potential_chains:
             endpoint1, endpoint2 = c[0], c[-1]
             width = math.sqrt((endpoint2[0] - endpoint1[0]) ** 2 + (endpoint2[1] - endpoint1[1]) ** 2)
             if width > self.min_width:
-                chains.append(c)
+                valid_chains.append(c)
+            else:
+                invalid_points += c  # counting invalid points
 
         # Debug
         print('found', len(potential_chains), 'potential chains')
-        print('found', len(chains), 'valid chains')
+        print('found', len(valid_chains), 'valid chains')
+        s = 0
+        for c in valid_chains:
+            s += len(c)
+        print('Point distribution:')
+        print('- valid points:', s)
+        print('- invalid points:', len(invalid_points))
+        print('- total / expected total:', s + len(invalid_points), '/', len(points))
 
-        return chains
+        return valid_chains, invalid_points
 
-    def available_paths(self, chains, rover_pos):
-        target_heading = normalize(self.target - rover_pos)
-        paths = []
-        for c in chains:
-            mid = c[len(c)//2]
-            path_heading = normalize(mid)
-            alignment = np.dot(target_heading, path_heading)
-            paths.append([mid, alignment])
+    def available_paths(self, valid_chains, invalid_points, rover_pos, rover_rot):
+        waypoints = [c[len(c)//2] for c in valid_chains]
+        # Compute pathing to each waypoint on the XY plane
+        valid_paths = []
+        valid_waypoints = []
+        for w_index in range(len(waypoints)):
+            w = waypoints[w_index][:2]  # shearing off the Z component
+            pos = rover_pos[:2]
+            path = [pos]
+            dist_waypoint = np.linalg.norm(w - pos)
 
-        paths.sort(key=lambda x: x[1], reverse=True)
+            while dist_waypoint > self.step_size:
 
-        # Debug
-        print('All paths at fork:')
-        for p in paths:
-            print('- alignment:', p[1], '\twaypoint:', p[0])
+                heading = normalize(w - pos)
+                next_pos = heading * self.step_size + pos
 
-        return paths
+                # adjust next_pos to avoid obstacles/invalid points
+                for point in invalid_points:
+                    point = point[:2]  # shearing off the Z component
+                    v = next_pos - point
+                    if np.linalg.norm(v) < self.min_width / 2:
+                        next_pos = point + normalize(v) * self.min_width / 2
 
-    def evaluate_terrain(self, scanline, rover_pos):
-        points = self.point_cloud(scanline)
-        chains = self.valid_chains(points)
-        fork = self.available_paths(chains, rover_pos)
+                # checking pass to verify that all invalid points are avoided
+                encroach = False
+                for point in invalid_points:
+                    point = point[:2]  # shearing off the Z component
+                    v = next_pos - point
+                    if np.linalg.norm(v) < self.min_width / 2:
+                        encroach = True
 
-        self.forks.append(fork)
+                if not encroach:
+                    path.append(next_pos)
+                    pos = next_pos
+                    dist_waypoint = np.linalg.norm(w - pos)  # update distance to waypoint
+                else:
+                    print("Encroach Error: pathing is impossible!")
+                    path = []
+                    break
 
-# TODO: Mask points behind walls and fix max obstacle height
+            if len(path) > 0:  # case where waypoint is reachable
+                path.append(w)
+                valid_paths.append(path)  # shape (2,)
+                valid_waypoints.append(waypoints[w_index])  # shape (3,)
+
+        # sorting paths based on alignment to target
+        # avoid sorting if unnecessary
+        if len(valid_paths) == 0:
+            print('No valid paths!')
+            return []
+        elif len(valid_paths) == 1:
+            print('Single path at fork')
+            print('waypoint:', valid_waypoints[0])
+            return valid_paths
+        else:
+            alignments = []
+            target_heading = normalize(self.target - rover_pos)
+            for w in valid_waypoints:
+                r = Rotation.from_euler('ZYX', rover_rot)  # apply rotation as Z-Y-X intrinsic Tait-Byran angles
+                waypoint_heading = r.apply(normalize(w - rover_pos))
+                alignments.append(np.dot(target_heading, waypoint_heading))
+
+            sorted_paths = [p for _, p in sorted(zip(alignments, valid_paths), reverse=True)]
+
+            # Debug
+            print('All paths at fork:')
+            for w, a in zip(valid_waypoints, alignments):
+                print('- alignment:', a, '\twaypoint:', w)
+            print('Best waypoint:', sorted_paths[0][-1])
+
+            return sorted_paths  # NOTE: only XY points!
+
+    def evaluate_terrain(self, scanline, rover_pos, rover_rot):
+        points = self.point_cloud(scanline, rover_pos)
+        valid_chains, invalid_points = self.eval_traversability(points, rover_pos)
+        paths = self.available_paths(valid_chains, invalid_points, rover_pos, rover_rot)
+
+        self.nodes.append(paths)
+
+    def next_path(self):
+        print(len(self.nodes), self.nodes)
+        current_node = self.nodes[-1]
+        if len(current_node) > 0:
+            best_path = current_node[0]  # best path is first as list is sorted
+            self.path_log.append(best_path)  # add the chosen path to the log
+            del current_node[0]  # path is considered locked as it has already been travelled once
+
+            return best_path
+
+        else:  # if there are no available paths at this node we have to backtrack
+            del self.nodes[-1]  # delete node as it is no longer viable
+            backtrack = []
+            end = self.path_log[-1][-1]
+            for point in self.path_log[-1][::-1]:  # reverse the last path taken
+                backtrack.append(point - end)
+            print('Backtracking... to', end)
+            return backtrack + self.next_path()
