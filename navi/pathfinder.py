@@ -41,16 +41,17 @@ class Pathfinder:
         self.nodes = []  # list of past encountered nodes each node containing untested paths
         self.path_log = []  # stores all paths taken by the rover
 
-    def point_cloud(self, scanline, rover_pos):
+    def point_cloud(self, scanline, rover_pos, rover_rot):
         # TODO: might need to take into account sensor cone_angle
         point_cloud = []  # list of all scanned points
+        r = Rotation.from_euler('ZYX', rover_rot)  # apply rotation as Z-Y-X intrinsic Tait-Byran angles
         for data_point in scanline:
             coords = sphere2cartesian(
                 data_point[1],
                 self.sensor_inclination,
                 data_point[0],
             )
-            point_cloud.append(coords + self.sensor_pos + rover_pos)
+            point_cloud.append(r.apply(coords + self.sensor_pos) + rover_pos)
         return point_cloud
 
     def eval_traversability(self, points, rover_pos):
@@ -101,8 +102,9 @@ class Pathfinder:
 
         return valid_chains, invalid_points
 
-    def available_paths(self, waypoint_step, valid_chains, invalid_points, rover_pos, rover_rot):
+    def available_paths(self, waypoint_step, valid_chains, invalid_points, rover_pos):
         waypoints = []
+        # picking out certain points to act as waypoints
         for c in valid_chains:
             mid = len(c)//2
             for p in c[:mid:waypoint_step]:
@@ -166,8 +168,7 @@ class Pathfinder:
             alignments = []
             target_heading = normalize(self.target - rover_pos)
             for w in valid_waypoints:
-                r = Rotation.from_euler('ZYX', rover_rot)  # apply rotation as Z-Y-X intrinsic Tait-Byran angles
-                waypoint_heading = r.apply(normalize(w - rover_pos))
+                waypoint_heading = normalize(w - rover_pos)
                 alignments.append(np.dot(target_heading, waypoint_heading))
 
             sorted_paths = [p for _, p in sorted(zip(alignments, valid_paths), key=lambda x: x[0], reverse=True)]
@@ -180,10 +181,10 @@ class Pathfinder:
 
             return sorted_paths  # NOTE: only XY points!
 
-    def evaluate_terrain(self, scanline, rover_pos, rover_rot):
-        points = self.point_cloud(scanline, rover_pos)
+    def evaluate_terrain(self, scanline, waypoint_step, rover_pos, rover_rot):
+        points = self.point_cloud(scanline, rover_pos, rover_rot)
         valid_chains, invalid_points = self.eval_traversability(points, rover_pos)
-        paths = self.available_paths(4, valid_chains, invalid_points, rover_pos, rover_rot)
+        paths = self.available_paths(waypoint_step, valid_chains, invalid_points, rover_pos)
 
         self.nodes.append(paths)
 

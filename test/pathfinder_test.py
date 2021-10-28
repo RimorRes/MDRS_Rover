@@ -10,7 +10,7 @@ with open("scanline.json", 'r') as f:
     sensor_pos, sensor_inclination, scanline = data
 max_angle = math.radians(15)
 min_width = 0.5
-rover_pos = np.array([0, 5, 0])
+rover_pos = np.array([0, 0, 0])
 
 Planck = navi.Pathfinder(
     target=np.array([0, 10, 0]),
@@ -22,15 +22,16 @@ Planck = navi.Pathfinder(
 )
 Planck.evaluate_terrain(
     scanline=scanline,
+    waypoint_step=10,
     rover_pos=rover_pos,
     rover_rot=np.array([0, 0, 0])
 )
 
 # Plotting
 print('='*30)
-points = np.array(Planck.point_cloud(scanline, rover_pos))
+points = np.array(Planck.point_cloud(scanline, rover_pos, np.array([0, 0, np.pi])))
 valid_chains, invalid_points = Planck.eval_traversability(points, rover_pos)
-paths = Planck.available_paths(4, valid_chains, invalid_points, rover_pos, np.array([0, 0, 0]))
+paths = Planck.available_paths(4, valid_chains, invalid_points, rover_pos)
 
 fig = plt.figure()
 ax1 = fig.add_subplot(221, projection='3d')
