@@ -101,8 +101,15 @@ class Pathfinder:
 
         return valid_chains, invalid_points
 
-    def available_paths(self, valid_chains, invalid_points, rover_pos, rover_rot):
-        waypoints = [c[len(c)//2] for c in valid_chains]
+    def available_paths(self, waypoint_step, valid_chains, invalid_points, rover_pos, rover_rot):
+        waypoints = []
+        for c in valid_chains:
+            mid = len(c)//2
+            for p in c[:mid:waypoint_step]:
+                waypoints.append(p)
+            waypoints.append(c[mid])
+            for p in c[mid::waypoint_step]:
+                waypoints.append(p)
         # Compute pathing to each waypoint on the XY plane
         valid_paths = []
         valid_waypoints = []
@@ -137,7 +144,7 @@ class Pathfinder:
                     pos = next_pos
                     dist_waypoint = np.linalg.norm(w - pos)  # update distance to waypoint
                 else:
-                    print("Encroach Error: pathing is impossible!")
+                    # print("Encroach Error: pathing is impossible!")
                     path = []
                     break
 
@@ -149,11 +156,11 @@ class Pathfinder:
         # sorting paths based on alignment to target
         # avoid sorting if unnecessary
         if len(valid_paths) == 0:
-            print('No valid paths!')
+            # print('No valid paths!')
             return []
         elif len(valid_paths) == 1:
-            print('Single path at fork')
-            print('waypoint:', valid_waypoints[0])
+            # print('Single path at fork')
+            # print('waypoint:', valid_waypoints[0])
             return valid_paths
         else:
             alignments = []
@@ -163,26 +170,27 @@ class Pathfinder:
                 waypoint_heading = r.apply(normalize(w - rover_pos))
                 alignments.append(np.dot(target_heading, waypoint_heading))
 
-            sorted_paths = [p for _, p in sorted(zip(alignments, valid_paths), reverse=True)]
+            sorted_paths = [p for _, p in sorted(zip(alignments, valid_paths), key=lambda x: x[0], reverse=True)]
 
             # Debug
-            print('All paths at fork:')
-            for w, a in zip(valid_waypoints, alignments):
-                print('- alignment:', a, '\twaypoint:', w)
-            print('Best waypoint:', sorted_paths[0][-1])
+            # print('All paths at fork:')
+            # for w, a in zip(valid_waypoints, alignments):
+            #     print('- alignment:', a, '\twaypoint:', w)
+            # print('Best waypoint:', sorted_paths[0][-1])
 
             return sorted_paths  # NOTE: only XY points!
 
     def evaluate_terrain(self, scanline, rover_pos, rover_rot):
         points = self.point_cloud(scanline, rover_pos)
         valid_chains, invalid_points = self.eval_traversability(points, rover_pos)
-        paths = self.available_paths(valid_chains, invalid_points, rover_pos, rover_rot)
+        paths = self.available_paths(4, valid_chains, invalid_points, rover_pos, rover_rot)
 
         self.nodes.append(paths)
 
     def next_path(self):
-        print(len(self.nodes), self.nodes)
         current_node = self.nodes[-1]
+        l = [len(n) for n in self.nodes]
+        print(l)
         if len(current_node) > 0:
             best_path = current_node[0]  # best path is first as list is sorted
             self.path_log.append(best_path)  # add the chosen path to the log
@@ -192,9 +200,7 @@ class Pathfinder:
 
         else:  # if there are no available paths at this node we have to backtrack
             del self.nodes[-1]  # delete node as it is no longer viable
-            backtrack = []
+            backtrack = self.path_log[-1][::-1]  # reverse the last path taken
             end = self.path_log[-1][-1]
-            for point in self.path_log[-1][::-1]:  # reverse the last path taken
-                backtrack.append(point - end)
             print('Backtracking... to', end)
             return backtrack + self.next_path()

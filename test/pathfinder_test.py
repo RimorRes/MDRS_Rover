@@ -25,13 +25,12 @@ Planck.evaluate_terrain(
     rover_pos=rover_pos,
     rover_rot=np.array([0, 0, 0])
 )
-print(Planck.next_path())
 
 # Plotting
 print('='*30)
 points = np.array(Planck.point_cloud(scanline, rover_pos))
 valid_chains, invalid_points = Planck.eval_traversability(points, rover_pos)
-paths = Planck.available_paths(valid_chains, invalid_points, rover_pos, np.array([0, 0, 0]))
+paths = Planck.available_paths(4, valid_chains, invalid_points, rover_pos, np.array([0, 0, 0]))
 
 fig = plt.figure()
 ax1 = fig.add_subplot(221, projection='3d')
