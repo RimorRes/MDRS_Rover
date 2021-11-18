@@ -1,0 +1,71 @@
+import csv
+
+def recevoir_donnees():
+    #Fonction qui va recevoir les données collectés par les capteurs, les garder dans data et les envoyer.
+    #data : liste/tuple argument , elle va garder les donnees collectes par les capteurs. 
+    #       travaillera probablement avec les fonctions de communication entre le Rasberry et l'Arduino
+    #data = [['Temperature',32],['blabla',43]] , les coordonnées de gps doit se trouver en première indice
+    
+    data = ()
+    pass
+
+
+
+def recuperation_cartographie():
+    #Récupere les données dans le fichier csv qui contiendra/contient les données des emplacements 
+    #scannes pour la cartographie dans une liste 'array'
+    #array = liste , contient le fichier csv  
+    
+    ouverture = open('cartographie.csv','r')
+    array = []
+    for ajouter in ouverture :
+        array.append(ajouter.rstrip().split(';'))
+    ouverture.close
+    return array
+
+
+def ajouter_csv(data):
+    #data : liste argument , liste qui retiens les donnees des capteurs de l'emplacement etudie
+    #La fonction va ajouter une liste dans le fichier CSV.
+
+    ouverture = open('cartographie.csv','a',newline='')
+    modif = csv.writer(ouverture)
+    modif.writerow(data)
+    ouverture.close()
+    
+def mise_a_jour_csv(): 
+    #data : liste argument , même usage que dans sauvegarder_csv
+    #La fonction va metter à jour une liste de donnée (si il est nécessaire d'avoir tel fonction)
+    #array : liste , enregistre le csv dans une liste. utile pour changer des valeurs dans le fichier
+    #existe : bool, si il n'existe pas de liste de donnée à mettre à jour, fait executer ajouter_csv à la place.
+    
+    array = recuperation_cartographie()
+    data = recevoir_donnees()
+    existe = 1
+    
+    for ligne in range (len(array)):
+        if array[ligne][0]  == data[0]:
+            array[ligne] = data
+            existe = 1
+            break
+    
+    if existe == 0 :
+        ajouter_csv(data)
+        return
+        
+            
+    
+    ouverture = open('cartographie.csv','w',newline='')
+    modifier = csv.writer(ouverture)
+    
+    for ligne in range (len(array)):
+        modifier.writerow(array[ligne])
+    ouverture.close()
+            
+    
+#Ouvre 2 fois un fichier, c'est lourd je sais, vais voir si je peux optimiser ? (algo qui ajoute les listes dans l'ordre croissant selon GPS + algo de recherche ?)
+            
+    
+
+
+    
