@@ -6,6 +6,6 @@ void setup(){
 
 void loop(){
     while(0){
-        Run(Serial.Read());
+        Run(serialPull());
     }
 }
