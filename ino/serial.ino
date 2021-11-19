@@ -3,8 +3,8 @@ Serial communication between Arduino and Raspberry Pi.
 */
 
 enum SERIAL_ERROR{
-    SUCCESS = 0x0,
-    INVALID = 0x1
+    SUCCESS = "ERROR;SUCCESS;;",
+    INVALID = "ERROR;0;;"
 };
 
 char* serialPull(int TIMEOUT = 1000){ // Pulls/Reads incoming data from serial port. It does NOT read the instrution. 

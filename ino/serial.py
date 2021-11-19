@@ -1,6 +1,8 @@
 # Serial communication between Arduino and Raspberry Pi. 
 # The exact same functions as in the "serial.ino". 
 
+#FX;ARG;;
+
 #!/usr/bin/env python3
 import serial
 
