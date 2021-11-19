@@ -2,10 +2,15 @@
 Serial communication between Arduino and Raspberry Pi. 
 */
 
+enum SERIAL_ERROR{
+    SUCCESS = 0x0,
+    INVALID = 0x1
+};
+
 char* serialPull(int TIMEOUT = 1000){ // Pulls/Reads incoming data from serial port. It does NOT read the instrution. 
     char* RETURN[0] = 0; Serial.setTimeout(TIMEOUT);
     for(int i ; Serial.available() > 0 ; i++){ // While the serial port is available. 
-        RETURN[i] = Serial.read(); // Fill RET with incoming bytes. 
+        RETURN[i] = Serial.read(); // Fill RETURN with incoming bytes. 
     }return RETURN;
 }
 
@@ -16,7 +21,7 @@ void serialPush(const char* TXT){ // Send bytes from serial port. Simplification
 void Run(char* INSTRUCTION){ // Reads the instruction to call it after. 
     char* FX[0] = 0; char* ARG[0] = 0; int INDEX = 0;
     for(int i ; i < sizeof(INSTRUCTION) ; i++){
-        if(INSTRUCTION[i] != ";" && INSTRUCTION[i++] != ";"){
+        if(INSTRUCTION[i] != ";"){
             FX[i] = INSTRUCTION[i];
         }else{INDEX = i; break;}
     }for(int i = INDEX; i < sizeof(INSTRUCTION) ; i++){
@@ -27,6 +32,6 @@ void Run(char* INSTRUCTION){ // Reads the instruction to call it after.
         case "push": 
             serialPush(ARG);
         default: // Case of unmatched function. 
-            return 1;
+            serialPush(SERIAL_ERROR.INVALID);
     }
 }
