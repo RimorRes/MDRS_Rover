@@ -1,0 +1,45 @@
+
+    
+import csv
+from .ino import serial as ardu
+
+#Temperature Pression Puissance/VitesseDuVent 
+#OrientationDuVent Magnetique DistanceParcourue(?)
+
+
+def recevoir_donnees():
+    #Fonction qui va recevoir les données collectés par les capteurs, les garder dans data et les envoyer.
+    #data : liste/tuple argument , elle va garder les donnees collectes par les capteurs. 
+    
+    data = []
+    ardu.Run("feed_me;Null;;") #Fonction qui va se trouver, si Antonio le veut, dans leurs code. Cette fonction va aller chercher les resultats des capteurs
+    data = ardu.serialPull(1000)[0].rsplit(';')[0] #Supposons que les données vont être envoyés de sorte : ['Temperature:47;null;;']
+    return data
+
+def recuperation_cartographie():
+    #Récupere les données dans le fichier csv qui contiendra/contient les données des emplacements 
+    #scannes pour la cartographie dans une liste 'array'
+    #array = liste , contient le fichier csv  
+    
+    ouverture = open('cartographie.csv','r')
+    array = []
+    for ajouter in ouverture :
+        array.append(ajouter.rstrip().split(';'))
+    ouverture.close
+    return array
+
+
+def ajouter_csv():
+    #data : liste argument , liste qui retiens les donnees des capteurs de l'emplacement etudie
+    #La fonction va ajouter une liste dans le fichier CSV.
+    
+    data = recevoir_donnees()
+    ouverture = open('cartographie.csv','a',newline='')
+    modif = csv.writer(ouverture)
+    modif.writerow(data)
+    ouverture.close()
+    
+
+
+
+    
