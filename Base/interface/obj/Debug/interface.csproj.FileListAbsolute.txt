@@ -1,0 +1,11 @@
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\bin\Debug\@interface.exe.config
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\bin\Debug\@interface.exe
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\bin\Debug\@interface.pdb
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.csproj.AssemblyReference.cache
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.csproj.SuggestedBindingRedirects.cache
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.Rover_Interface.resources
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.Properties.Resources.resources
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.csproj.GenerateResource.cache
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\interface.csproj.CoreCompileInputs.cache
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\@interface.exe
+C:\Users\NihoncraftNeo\Documents\PROJECTS\MDRS_Rover\Base\interface\obj\Debug\@interface.pdb

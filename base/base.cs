@@ -1,1 +1,0 @@
-/* Will be coded from Visual Studio using C# to build a simple desktop application. */
