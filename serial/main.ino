@@ -12,6 +12,7 @@ void loop(){
     //while(0){
       //  Run(serialPull());
     //}
+    Serial.println("fin boucle");
 }
 
 void initPorts(){
