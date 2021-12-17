@@ -1,4 +1,4 @@
-#include "serial.ino"
+#include "serial.h"
 
 void setup(){
     Serial.begin(9600);
@@ -6,9 +6,12 @@ void setup(){
 }
 
 void loop(){
-    while(0){
-        Run(serialPull());
-    }
+  serialPull();
+
+  
+    //while(0){
+      //  Run(serialPull());
+    //}
 }
 
 void initPorts(){
