@@ -2,11 +2,6 @@
 Serial communication between Arduino and Raspberry Pi. 
 */
 
-enum SERIAL_ERROR{
-    SUCCESS = "ERROR;SUCCESS;;",
-    INVALID = "ERROR;0;;"
-};
-
 char* serialPull(int TIMEOUT = 1000){ // Pulls/Reads incoming data from serial port. It does NOT read the instrution. 
     char* RETURN[0] = 0; Serial.setTimeout(TIMEOUT);
     for(int i ; Serial.available() > 0 ; i++){ // While the serial port is available. 
@@ -32,6 +27,6 @@ void Run(char* INSTRUCTION){ // Reads the instruction to call it after.
         case "push": 
             serialPush(ARG);
         default: // Case of unmatched function. 
-            serialPush(SERIAL_ERROR.INVALID);
+            return(0); // Panic. 
     }
 }
