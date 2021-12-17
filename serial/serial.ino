@@ -26,6 +26,8 @@ void Run(char* INSTRUCTION){ // Reads the instruction to call it after.
     }switch(FX){ // All functions callable from Raspberry Pi shall have a case here. 
         case "push": 
             serialPush(ARG);
+        case "test":
+            digitalWrite(4, HIGH);
         default: // Case of unmatched function. 
             return(0); // Panic. 
     }
