@@ -3,7 +3,7 @@
 import csv
 from .ino import serial as ardu
 
-#Temperature Pression Puissance/VitesseDuVent 
+#X Y Temperature Pression Puissance/VitesseDuVent 
 #OrientationDuVent Magnetique DistanceParcourue(?)
 
 
@@ -13,7 +13,7 @@ def recevoir_donnees():
     
     data = []
     ardu.Run("feed_me;Null;;") #Fonction qui va se trouver, si Antonio le veut, dans leurs code. Cette fonction va aller chercher les resultats des capteurs
-    data = ardu.serialPull(1000)[0].rsplit(';')[0] #Supposons que les données vont être envoyés de sorte : ['Temperature:47;null;;']
+    data = ardu.serialPull(1000)[0].rsplit(';')[0] #Supposons que les données vont être envoyés de sorte : ['0/0/0/0/0/0/0/0;null;;']
     return data
 
 def recuperation_cartographie():
