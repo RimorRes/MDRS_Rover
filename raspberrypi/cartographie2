@@ -1,0 +1,122 @@
+
+from tri import * #Copié-collé, est-ce problème ? (idem pour dessous)
+from graphique import *
+import csv
+
+
+#Reference :
+# 0/0/0 ... ; 0/0/0 ... 
+
+def ecrire(liste): #WAI
+  #fonction qui inscrit graphe dans graphe.csv
+
+  ouverture = open('cartographie.csv','w',newline='')
+  modif = csv.writer(ouverture)
+  data = transforme_en_str(liste)
+  for ligne in data:
+    modif.writerow(ligne)
+  ouverture.close()
+
+def transforme_en_str(tableau):
+  #tableau : list/int, liste contenant des données sous forme de tableau
+  #Cette fonction transforme la liste en str pour ecrire dans le fichier csv.
+  #data : list/str , contient tableau sous forme de str.
+  data = []
+  for y in tableau:
+    data.append([])
+    for i in tableau[y] :
+      data[y] += str(i[0]) + '/' + str(i[1]) + '/' + str(i[2]) + '/' + str(i[3])+ '/' + str(i[4]) + '/' + str(i[5]) + '/' + str(i[6]) + '/' + str(i[7]) + ';'
+  return data
+
+def transforme_en_liste(tableau):
+  #fait l'inverse d'en dessous
+  #tableau : matrice/int 
+  #tableau2 : list/int , version "liste" de tableau
+
+  tableau2 = []
+  for i in range (len(tableau)):
+    for y in range (len(tableau[i])):
+      tableau2.append(tableau[i][y])
+
+def recuperer(type_): #WAI
+  #type_ : str , le nom du fichier csv qu'on veut import.
+  #       graphe.csv       : version ordonée et rangée de cartographie 
+  #       cartographie.csv : version 'en vrac' de graphe. Celui crée 
+  #                          pendant le trajet/expédition.
+  #liste : list, les données rangés dans une liste (celui de graphe ou carto)
+  #Fonction qui recupere les données sous forme d'une liste (pas tableau)
+  #Va retourner liste trié de deux manières (voir trie_liste) 
+  fichier = open(type_,'r')
+  liste = []
+  for ligne in fichier:
+   liste.append(ligne.rstrip().rsplit(';'))
+  if type_ == "cartographie.csv":
+    for element in range (len(liste)) : 
+      liste[element] = liste[element].rsplit('/')
+      for element2 in range(len(liste[element])):
+        liste[element][element2] = int(liste[element][element2]) 
+  else :
+    for i in range (len(liste)):
+      for element in range (len(liste[i])) : 
+        liste[element] = liste[element].rsplit('/')
+        for element2 in range(len(liste[i][element])):
+          liste[element][element2] = int(liste[element][element2]) 
+    liste = transforme_en_liste(liste)
+  fichier.close()
+  liste = trie_liste(liste)
+  return liste
+
+
+
+def trie_liste (liste):#WAI
+  #liste : list/int, cartographie.csv sous une list
+  #liste_range : list/list/int , trie et sauvegarde la liste. 
+  #Fonction qui trie de deux manières : plus petit abscisse=>plus grand abscisse et de meme pour ordonnee
+  liste_range = [tri_fusion(liste,'x') , tri_fusion(liste,'y')]
+  return liste_range
+
+
+def chercher_limite(liste): #WAI
+  #limites : list/int , renvoie le X/Y de la case la plus proche de                       0x/Oy et celle la plus loin de celle-ci.
+  #liste : list/int, cartographie.csv sous une liste trié
+  limites = [ liste[0][0][0] , liste[0][len(liste[0])][0] , liste[1][0][1] , liste[1][len(liste)][1]] #x debut , x fin , y debut , y fin
+  return limites
+
+
+def quadrillage(type_): #WAI
+  #liste : list/int, cartographie.csv sous une list
+  #liste2: list/int, si liste == graphe.csv, alors liste2 = cartographie.csv
+  #Fonction qui crée le graphe.csv, si il est déjà crée alors il va fusionner graphe et cartographie pour refaire un nouveau fichier graphe.
+  #type_ : char , choisir graphe ou cartographie. 
+  #limites : list/int , X/Y de la case la plus proche de 0x/Oy et celle la plus loin de celle-ci.
+
+  if type_ == 'cartographie.csv' :  #graphe.csv n'est pas crée #WAI
+    liste = recuperer(type_)
+    limites = chercher_limite(liste)
+    graphe = []
+    for y in range (limites[3] - limites[2]):
+      graphe.append([])
+      for x in range (limites[1] - limites[0]):
+        graphe[y].append([0,0,0,0,0,0,0,0])
+    for element in liste :
+        graphe[element[1] - limites[2]][element[0] - limites[0]] = element
+
+  else : #graphe est déjà crée alors on fusionne graphe et cartographie #WAI
+    liste = recuperer(type_) #Les graphes sont déjà triés
+    limites = chercher_limite(liste)
+    liste2 = recuperer('cartographie.csv')
+    limites2 = chercher_limite(liste2)
+    graphe=[]
+    op1 = limites[3] - limites[2] + (limites2[3] - limites2[2] -limites[3] - limites[2])
+    op2 = limites[1] - limites[0] + (limites2[1] - limites2[0] - limites[1] - limites[0]) #Question d'optimisation pour la boucle qui suit.
+    for i in range(op1):
+      graphe.append([])
+      for y in range(op2):
+        graphe[y].append(([0,0,0,0,0,0,0,0]))
+    for element in liste2:
+        graphe[element[1] - limites[2]][element[0] - limites[0]] = element
+  ecrire(graphe)
+
+def affichage():
+  pass
+
