@@ -3,6 +3,7 @@
   Programme père
     
   Version originale iOSubOrbital 2021-2022     
+  note de version : ça fait n'importe quoi pour les moteurs
  **********************************************************/
  
 /*********************************************
