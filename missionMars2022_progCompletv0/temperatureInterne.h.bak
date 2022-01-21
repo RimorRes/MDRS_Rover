@@ -1,0 +1,9 @@
+/* routines de gestion du capteur TMP102 pour surveiller la température interne du rover */
+
+boolean test_temp_int();
+
+boolean init_tmp102();
+
+float read_temperature();
+  // lit la tempÃ©rature interne avec le tmp102
+
