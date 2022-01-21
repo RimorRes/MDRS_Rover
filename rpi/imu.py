@@ -1,22 +1,38 @@
 from sense_hat import SenseHat
+import numpy as np
+from scipy.spatial.transform import Rotation
+from time import sleep
 
+
+g = 9.80665
 sense = SenseHat()
 
-sense.show_message("Testing IMU!")
 
-red = (255, 0, 0)
+def calc_acceleration_vector():
+    raw_accel = list(sense.get_accelerometer_raw().values())
+    pitch, roll, yaw = list(sense.get_gyroscope().values())
+    r = Rotation.from_euler('ZYX', [yaw, pitch, roll], degrees=True)
+    vec = r.apply(np.array(raw_accel))
 
-while True:
-    acceleration = sense.get_accelerometer_raw()
-    x = acceleration['x']
-    y = acceleration['y']
-    z = acceleration['z']
+    return vec
 
-    x = abs(x)
-    y = abs(y)
-    z = abs(z)
 
-    if x > 1 or y > 1 or z > 1:
-        sense.show_letter("!", red)
-    else:
-        sense.clear()
+def calibrate():
+    n = 10
+    t = 0.01
+
+    s = np.zeros(3)
+    for _ in range(n):
+        s += calc_acceleration_vector()
+        sleep(t)
+    correction = s/n
+
+    return correction
+
+
+def get_imu():
+    accel = calc_acceleration_vector()
+    gyro = list(sense.get_gyroscope().values())
+    compass = sense.get_compass()
+
+    return accel, gyro, compass
