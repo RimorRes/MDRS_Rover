@@ -3,8 +3,12 @@
   Programme père
     
   Version originale iOSubOrbital 2021-2022     
-  note de version : ça fait n'importe quoi pour les moteurs
  **********************************************************/
+/****
+TO DO
+*****/
+//  classes : Dans l'absolu, il faudrait passer les publiques en privées. Tant pis.
+// Et puis ce codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
  
 /*********************************************
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
@@ -12,23 +16,13 @@ PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
 // commenter ce qui suit pour économiser l'espace sur le microcontroleur
 #define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série
 
-/*********************
-DEFINITION DES BROCHES
-***********************/
-const int PIN_moteur1_1 = 4; // avant droit ?
-const int PIN_moteur1_2 = 5; // avant gauche ?
-const int PIN_moteur1_3 = 6; // arrière droit ?
-const int PIN_moteur1_4 = 7; // arrière gauche ?
-const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
-
-const int PIN_detectObst1_Trig = 8;
-const int PIN_detectObst1_Echo = 9;
-const int PIN_detectObst2_Trig = 10;
-const int PIN_detectObst2_Echo = 11;
-
-const int PIN_SCL = A5; // inutile, c'est juste pour penser à la réserver. On ne peut pas changer la valeur.
-const int PIN_SDA = A4; // inutile, c'est juste pour penser à la réserver. On ne peut pas changer la valeur.
-
+/*************
+SPECIFICATIONS
+**************/
+// Pour passer en paramètre des fonctions
+#include"specifications.h"
+PIN_spec myPINs; // définition des broches
+Rover_spec rover_spec; // spécifications du rover (géométrie, valeurs limites, ...)
 
 /*********************************
 CONNEXION DES PERIPHERIQUES EN I2C
@@ -42,13 +36,6 @@ brancher SCL sur A5 (qui est le port SCL pour les Arduino Uno R3)
 brancher SDA sur A4 (qui est le port SDA pour les Arduino Uno R3)
 L'adresse 7 bits du BMP180 est Ox77.
 */
-
-/**********************
-SPECIFICATIONS DU ROVER
-***********************/
-const float rayonExterneRoueEnMetres = 0.03; // valeur réelle ?
-const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
-const float rayonBraquageEnMetres = 0.40; // valeur réelle ? Il s'agit du rayon de braquage en tournant sur place.
 
 /***************
 MODULES EXTERNES
@@ -69,8 +56,8 @@ TMP102 sensorTinterne; // donnera la température interne à 0,0625°C près
 
 /* détercteurs d'obstacle */
 #include <Ultrasonic.h>
-Ultrasonic ultrasonic_1(PIN_detectObst1_Trig,PIN_detectObst1_Echo); // regarde devant
-Ultrasonic ultrasonic_2(PIN_detectObst2_Trig,PIN_detectObst2_Echo); //  regarde en bas
+Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig,myPINs.PIN_detectObst1_Echo); // regarde devant
+Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo); //  regarde en bas
 
 /* communication série */
 #include "serialComm.h" // module codé par nous
@@ -105,7 +92,7 @@ void setup()
     msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102); ");
   }
 
-  OK_init_moteurs = init_moteurs();
+  OK_init_moteurs = init_moteurs(myPINs);
   if(!OK_init_moteurs){  // impossible avec le code actuel
     msg_alerte.concat("problème d'initialisation des moteurs; ");
   }
@@ -176,16 +163,21 @@ void loop()
 GROS BAZAR DE FONCTIONS...
 **************************/
 
-boolean init_moteurs(){
-  pinMode(PIN_moteur1_1, OUTPUT);
-  pinMode(PIN_moteur1_2, OUTPUT);
-  pinMode(PIN_moteur1_3, OUTPUT);
-  pinMode(PIN_moteur1_4, OUTPUT);
-  pinMode(PIN_mesure_tension_alim, INPUT);
+boolean init_moteurs(PIN_spec myPINs){
+  pinMode(myPINs.PIN_moteur1_1, OUTPUT);
+  pinMode(myPINs.PIN_moteur1_2, OUTPUT);
+  pinMode(myPINs.PIN_moteur1_3, OUTPUT);
+  pinMode(myPINs.PIN_moteur1_4, OUTPUT);
+  pinMode(myPINs.PIN_mesure_tension_alim, INPUT);
   return true;
 }
 
-void avancer2(int dir, int ms) {
+void avancer2(int dir, int ms, PIN_spec myPINs) {
+  int PIN_moteur1_1 = myPINs.PIN_moteur1_1;
+  int PIN_moteur1_2 = myPINs.PIN_moteur1_2;
+  int PIN_moteur1_3 = myPINs.PIN_moteur1_3;
+  int PIN_moteur1_4 = myPINs.PIN_moteur1_4;
+  
   if (dir == 1){
     digitalWrite(PIN_moteur1_1, HIGH);
     digitalWrite(PIN_moteur1_2, LOW);
@@ -211,17 +203,17 @@ void avancer2(int dir, int ms) {
 
 
 //motor: 'a'ou 'b', dir: 1 clockwise 2 counterclockwise, ms: temps d'activation en ms
-void avancer(char motor, int dir, int ms){
+void avancer(char motor, int dir, int ms, PIN_spec myPINs){
 
   int ia, ib;
     
    if (motor == 'a') {
-    ia = PIN_moteur1_1; ib = PIN_moteur1_2;
+    ia = myPINs.PIN_moteur1_1; ib = myPINs.PIN_moteur1_2;
     
   }
  
   if (motor == 'b') {
-    ia = PIN_moteur1_3; ib = PIN_moteur1_4;
+    ia = myPINs.PIN_moteur1_3; ib = myPINs.PIN_moteur1_4;
   }
   
   if (dir == 1){
@@ -247,34 +239,34 @@ float lireTensionAlimMoteurs(){ // donne la tension mesurée pour l'alimentation
   return tension;
 }
   
-void avancerMetres(float dist){
+void avancerMetres(float dist, Rover_spec rover_spec, PIN_spec myPINs){
   float tensionAlimEnV = lireTensionAlimMoteurs();
-  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - tensionSeuilAlimMoteurs) * rayonExterneRoueEnMetres;
+  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - rover_spec.tensionSeuilAlimMoteurs) * rover_spec.rayonExterneRoueEnMetres;
   
   int ms = int(dist / vitesseMetresParSecondes * 1000); // durée d'alimentation des moteurs, en ms
   
-  digitalWrite(PIN_moteur1_1, LOW);
-  digitalWrite(PIN_moteur1_2, LOW);
-  digitalWrite(PIN_moteur1_3, LOW);
-  digitalWrite(PIN_moteur1_4, LOW);
+  digitalWrite(myPINs.PIN_moteur1_1, LOW);
+  digitalWrite(myPINs.PIN_moteur1_2, LOW);
+  digitalWrite(myPINs.PIN_moteur1_3, LOW);
+  digitalWrite(myPINs.PIN_moteur1_4, LOW);
 
   delay(ms);
   
-  digitalWrite(PIN_moteur1_1, HIGH);
-  digitalWrite(PIN_moteur1_2, HIGH);
-  digitalWrite(PIN_moteur1_3, HIGH);
-  digitalWrite(PIN_moteur1_4, HIGH);
+  digitalWrite(myPINs.PIN_moteur1_1, HIGH);
+  digitalWrite(myPINs.PIN_moteur1_2, HIGH);
+  digitalWrite(myPINs.PIN_moteur1_3, HIGH);
+  digitalWrite(myPINs.PIN_moteur1_4, HIGH);
 }
 
-void tournerSurPlaceDegres(int dir, float angle){
+void tournerSurPlaceDegres(int dir, float angle, Rover_spec rover_spec, PIN_spec myPINs){
 //dir: 1 clockwise 2 counterclockwise, angle: angle de rotation en degrés
   float tensionAlimEnV = lireTensionAlimMoteurs();
-  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - tensionSeuilAlimMoteurs) * rayonExterneRoueEnMetres;
+  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - rover_spec.tensionSeuilAlimMoteurs) * rover_spec.rayonExterneRoueEnMetres;
 
-  float dist = rayonBraquageEnMetres * angle / 180 * 3.141592654;
+  float dist = rover_spec.rayonSurPlaceEnMetres * angle / 180 * 3.141592654;
   int ms = int(dist / vitesseMetresParSecondes * 1000); // durée d'alimentation des moteurs, en ms
   
-  avancer2(dir, ms);
+  avancer2(dir, ms, myPINs);
 }
 
 void suivreOrdreMarchePonctuel(String ordreMarche){
