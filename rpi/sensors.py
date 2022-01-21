@@ -1,7 +1,8 @@
-from sense_hat import SenseHat
 import numpy as np
 from scipy.spatial.transform import Rotation
 from time import sleep
+from sense_hat import SenseHat
+from gpiozero import CPUTemperature
 
 
 g = 9.80665
@@ -17,7 +18,7 @@ def calc_acceleration_vector():
     return vec
 
 
-def calibrate():
+def calibrate_imu():
     n = 10
     t = 0.01
 
@@ -36,3 +37,12 @@ def get_imu():
     compass = sense.get_compass()
 
     return accel, gyro, compass
+
+
+def get_environmental():
+    t = round(sense.get_temperature(), 4)
+    p = round(sense.get_pressure(), 4)
+    h = round(sense.get_humidity(), 4)
+    cpu_t = round(CPUTemperature().temperature, 4)
+
+    return {'t': t, 'p': p, 'h': h, 'cpu_t': cpu_t}
