@@ -108,3 +108,15 @@ void Chemin::removePoint(int numero){
   }
   return;
 }
+
+void Chemin::cheminRetour(){
+  // still to code
+  Chemin chemin;
+  chemin.setPointDebut(this->getPointActuel());
+  int longueur =1;
+  for (int i=_numeroPointActuel; i>=0; i--){
+    chemin.addPoint(longueur, this->_Points[i]);
+    longueur++;
+  }
+  return;
+}

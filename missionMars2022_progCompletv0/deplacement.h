@@ -38,6 +38,7 @@ class Chemin  // utilise la classe Point
     Point getPointParNumero(int numero);
     void addPoint(int numero, Point point);
     void removePoint(int numero);
+    void cheminRetour();
   private:
     Point _PointDebut;
     Point _PointFin;
