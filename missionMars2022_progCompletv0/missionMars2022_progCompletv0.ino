@@ -263,7 +263,7 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
 }
 
 boolean emettreMessage(String message){
-  int nbrCaracteresMax = 32; // déterminé empiriquement (36 en principe !)
+  int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
   int nbrPhrases = int(message.length() / nbrCaracteresMax) +1;
   String phrase;
   for (int i=0;i<nbrPhrases;i++){
