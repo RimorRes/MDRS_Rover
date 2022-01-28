@@ -92,6 +92,10 @@ String msg_alerte = "tout va bien; ";
 
 /* mémoire du rover */
 String successionOrdresMarche = "";
+String cheminSuivi = "";
+
+/* mémoire tampon */
+String messageBus = "";
 
 void setup()
 {
@@ -181,14 +185,36 @@ void loop()
 #endif
 */  
   
-  String reception = serialPull();
-  Serial.println("instruction : "+reception+".");
-  Run(reception);
-
-  String message = "youpi !! Ca marche.";
-  //emettreMessage(message);
-
   delay(1000);  // Wait 1000ms
+}
+
+void serialEvent(){
+  /*String reception = serialPull();
+  Serial.println("instruction : "+reception+".");
+  Run(reception);*/
+  messageBus = "youpi !! Ca marche.";
+
+  surveillerBus();
+  if (messageBus != ""){parlerBus();}
+  return;
+}
+
+void surveillerBus(){
+  Serial.println("coucou ici");
+  String reception = serialPull();
+  if (reception =="A"){
+    Serial.print("R");
+    delay(1000);
+    reception = serialPull();
+    Run(reception);
+  }
+  return;
+}
+
+void parlerBus(){
+  // A coder
+  Serial.println(messageBus);
+  return;
 }
 
 /*************************
