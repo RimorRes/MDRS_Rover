@@ -95,19 +95,18 @@ String successionOrdresMarche = "";
 String cheminSuivi = "";
 
 /* mémoire tampon */
-String messageBus = "";
+String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
 void setup()
 {
-//#ifdef AFFICHAGE
   Serial.begin(9600);                       
   while(!Serial){;}                         // On attend que le port série soit disponible
+// la ligne précédente est-elle à enlever lorsque ce ne sera plus le moniteur série ?
   delay(1000);
-//#endif
   Wire.begin(); //Join I2C Bus
   
   OK_init_Tint = init_tmp102(sensorTinterne);
-  if(!OK_init_Tint){  // impossible avec le code actuel
+  if(!OK_init_Tint){
     msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102); ");
   }
 
@@ -115,7 +114,7 @@ void setup()
   if(!OK_init_moteurs){  // impossible avec le code actuel
     msg_alerte.concat("problème d'initialisation des moteurs; ");
   }
-
+  
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
   radio.openWritingPipe(adresseAntenne);     // Ouverture du tunnel en ÉCRITURE, avec le "nom" qu'on lui a donné
@@ -136,10 +135,10 @@ pinMode(9, OUTPUT); // LED jaune
 
 void loop()
 {
-  /*if (OK_init_Tint){
+  if (OK_init_Tint){
     msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, Tint_min, Tint_max));
   }
-
+/*
   int dist_1 = ultrasonic_1.Ranging(CM);
   int dist_2 = ultrasonic_2.Ranging(CM);
 #ifdef AFFICHAGE
@@ -153,11 +152,8 @@ void loop()
   
   float tensionBrute = analogRead(A0); // avec un pont diviseur de tension d'un facteur environ 3
   float tension = tensionBrute * 5 /1023 *3; //  Ce facteur 3 vient du pont diviseur de tension, qui évite de mettre le 12 V en entrée de l'arduino.
-#ifdef AFFICHAGE
-  Serial.print("tension d'alimentation moteur = ");
-  Serial.print(tension);
-  Serial.println(" V");
-#endif
+  //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
+
   */
   
   // avancer('a', 1, 1000);
@@ -176,44 +172,19 @@ void loop()
 #ifdef AFFICHAGE
   Serial.print("récapitulation du chemin suivi : ");
   Serial.println(successionOrdresMarche);
-#endif
-
-#ifdef AFFICHAGE
   Serial.print("état du rover : ");
   Serial.println(msg_alerte);
   Serial.println("");
 #endif
 */  
-  
+
+  //messageBus = msg_alerte;
+  if (messageBus != ""){parlerBus();}
   delay(1000);  // Wait 1000ms
 }
 
 void serialEvent(){
-  /*String reception = serialPull();
-  Serial.println("instruction : "+reception+".");
-  Run(reception);*/
-  messageBus = "youpi !! Ca marche.";
-
-  surveillerBus();
-  if (messageBus != ""){parlerBus();}
-  return;
-}
-
-void surveillerBus(){
-  Serial.println("coucou ici");
-  String reception = serialPull();
-  if (reception =="A"){
-    Serial.print("R");
-    delay(1000);
-    reception = serialPull();
-    Run(reception);
-  }
-  return;
-}
-
-void parlerBus(){
-  // A coder
-  Serial.println(messageBus);
+  lectureBus();
   return;
 }
 
@@ -221,6 +192,7 @@ void parlerBus(){
 GROS BAZAR DE FONCTIONS...
 **************************/
 
+// déclarer en tête de serialComm.cpp
 void Run(String INSTRUCTION){ // Reads the instruction to call it after. 
     if (INSTRUCTION != ""){
 #ifdef AFFICHAGE
@@ -261,7 +233,7 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
         case 1:
           Serial.println("Youpi !"); break;
         case 2:
-          noel(); break;
+          ;//noel(); break;
         case 3:
           if(numArg != 0){serialPush(arguments[0]);} break;
         case 4:

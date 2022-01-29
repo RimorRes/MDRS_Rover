@@ -1,5 +1,7 @@
 /*Serial communication between Arduino and Raspberry Pi. */
 #include<Arduino.h>
+void Run(String INSTRUCTION);
+extern String messageBus;
 #define AFFICHAGE // à commenter pour enlever le bavardage
 
 String serialPull(int TIMEOUT = 1000){ // Pulls/Reads incoming data from serial port. It reads one instrution but does not interpret it. 
@@ -37,14 +39,35 @@ void serialPush(String TXT){ // Send bytes from serial port. Simplification of S
     return;
 }
 
-void noel(/*const char* ARG*/){
-    digitalWrite(8, HIGH);
-    delay(250);
-    digitalWrite(8, LOW);
-    delay(250);
-    digitalWrite(9, HIGH);
-    delay(250);
-    digitalWrite(9, LOW);
-    delay(250);
-    //Serial.println(ARG);
+void lectureBus(){
+  int dureeAttente = 1000;  // en millisecondes
+  int TIMEOUT = 1000; // durée max de surveillance du bus
+  String reception = serialPull();  // lecture bus
+  if (reception =="A"){ // vérifier que le message commence par "A" permet d'éviter de transmettre de mauvaise instructions si le début du message s'est perdu
+    // la fin du message n'est pas vérifiée, ce qui est un défaut.
+    Serial.print("R");  // on répond qu'on est prêt
+    delay(dureeAttente);
+    Serial.setTimeout(TIMEOUT); // le temps au bout duquel on arrête de surveiller le bus
+    while (Serial.available()){ // tant que le bus n'est pas vide...
+      reception = serialPull(); // on lit une instruction
+      Run(reception); // et on exécute l'instruction
+    } // le bus est vide
+  } // si ça ne commençait pas par "A" on n'a rien fait
+  return;
+}
+
+void parlerBus(){
+  int dureeAttente = 1000;  // en millisecondes
+  int nombreEssais = 2;
+  for (int i = 0; i<nombreEssais; i++){ // essais de prise de parole
+    Serial.print("A");  // demande la parole
+    delay(dureeAttente);
+    String reception = serialPull();  // lit le bus
+    if (reception =="R"){ // si ça répond...
+      Serial.print(messageBus); // on parle
+      messageBus="";  // plus rien à dire
+      break;  // et on arrête
+    } // ...sinon on retente
+  }
+  return;
 }

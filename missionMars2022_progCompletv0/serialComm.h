@@ -5,6 +5,6 @@ String serialPull(int TIMEOUT = 1000); // Pulls/Reads incoming data from serial 
 
 void serialPush(String TXT); // Send bytes from serial port. Simplification of Serial.Write().
 
-void noel(); // for fun
+void lectureBus();
 
-void Run(String INSTRUCTION); // Reads the instruction to call it after.
+void parlerBus();
