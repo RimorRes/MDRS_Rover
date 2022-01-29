@@ -7,14 +7,15 @@
 class Point
 {
   public:
-    void init(float X, float Y, float T);
-    float getX();
-    float getY();
-    float getT();
+    Point();
+    Point(float X, float Y, float T);
+    float getX() const;
+    float getY() const;
+    float getT() const;
     void setX(float X);
     void setY(float Y);
     void setT(float T);
-    String affichage(); // ajouté pour les besoins de test
+    String affichage() const; // ajouté pour les besoins de test
   private:
     float _X;
     float _Y;
@@ -24,21 +25,22 @@ class Point
 class Chemin  // utilise la classe Point
 {
   public:
-    void init(Point PointDebut, Point PointFin);
-    Point getPointDebut();
-    Point getPointFin();
-    Point getPointActuel();
+    Chemin();
+    Chemin(Point PointDebut, Point PointFin);
+    Point getPointDebut() const;
+    Point getPointFin() const;
+    Point getPointActuel() const;
     void setPointDebut(Point PointDebut);
     void setPointFin(Point PointFin);
     void setPointActuel(Point PointActuel);
-    int getNumeroPointActuel();
-    int getNombrePoints();
-    String affichage(); // ajouté pour les besoins de test
+    int getNumeroPointActuel() const;
+    int getNombrePoints() const;
+    String affichage() const; // ajouté pour les besoins de test
     Point avancerPointSuivant();
-    Point getPointParNumero(int numero);
+    Point getPointParNumero(int numero) const;
     void addPoint(int numero, Point point);
     void removePoint(int numero);
-    void cheminRetour();
+    Chemin cheminRetour();
   private:
     Point _PointDebut;
     Point _PointFin;

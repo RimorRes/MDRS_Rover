@@ -7,8 +7,10 @@
 /****
 TO DO
 *****/
-//  classes : Dans l'absolu, il faudrait passer les publiques en privées. Tant pis.
+//  classes : Dans l'absolu, il faudrait passer les publiques en privées. Tant pis. (Fait pour déplacements.)
 // Et puis ce codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
+// 
+// Gestion des moteurs à passer en classes
  
 /*********************************************
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
@@ -21,7 +23,7 @@ SPECIFICATIONS
 **************/
 // Pour passer en paramètre des fonctions
 #include "specifications.h"
-PIN_spec myPINs; // définition des broches
+PIN_spec myPINs; // définition des broches. utilisé dans moteurs.cpp
 Rover_spec rover_spec; // spécifications du rover (géométrie, valeurs limites, ...)
 
 /*********************************
@@ -74,6 +76,10 @@ Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo)
 RF24 radio(pinCE, pinCSN);    // Instanciation du NRF24L01
 const byte adresseAntenne[6] = tunnel;               // Mise au format "byte array" du nom du tunnel
 
+/* moteurs */
+#include "moteurs.h"
+Moteur moteur1(myPINs.PIN_moteur1_1, myPINs.PIN_moteur1_2, myPINs.PIN_moteur1_3, myPINs.PIN_moteur1_4, myPINs.PIN_mesure_tension_alim);
+
 /**********************
 FONCTIONNALITES VARIEES
 ***********************/
@@ -110,10 +116,11 @@ void setup()
     msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102); ");
   }
 
-  OK_init_moteurs = init_moteurs(myPINs);
+  OK_init_moteurs = moteur1.init_moteur();
+/*OK_init_moteurs = init_moteurs(myPINs);
   if(!OK_init_moteurs){  // impossible avec le code actuel
     msg_alerte.concat("problème d'initialisation des moteurs; ");
-  }
+  }*/
   
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
@@ -277,16 +284,6 @@ boolean emettreMessage(String message){
     radio.write(&msg, sizeof(msg));     // Envoi de notre message 
     //Serial.write(msg, sizeof(msg));
   }
-}
-
-
-boolean init_moteurs(PIN_spec myPINs){
-  pinMode(myPINs.PIN_moteur1_1, OUTPUT);
-  pinMode(myPINs.PIN_moteur1_2, OUTPUT);
-  pinMode(myPINs.PIN_moteur1_3, OUTPUT);
-  pinMode(myPINs.PIN_moteur1_4, OUTPUT);
-  pinMode(myPINs.PIN_mesure_tension_alim, INPUT);
-  return true;
 }
 
 void avancer2(int dir, int ms, PIN_spec myPINs) {

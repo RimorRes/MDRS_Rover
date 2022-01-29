@@ -9,22 +9,29 @@
  * classe Point
  * ************/
  
-void Point::init(float X, float Y, float T)
+Point::Point()
+{
+  _X = 0;
+  _Y = 0;
+  _T = 0;
+}
+
+Point::Point(float X, float Y, float T)
 {
   _X = X;
   _Y = Y;
   _T = T;
 }
 
-float Point::getX(){return _X;}
-float Point::getY(){return _Y;}
-float Point::getT(){return _T;}
+float Point::getX() const{return _X;}
+float Point::getY() const{return _Y;}
+float Point::getT() const{return _T;}
 
 void Point::setX(float X){_X = X;}
 void Point::setY(float Y){_Y = Y;}
 void Point::setT(float T){_T = T;}
 
-String Point::affichage(){
+String Point::affichage() const{
   return String(_X) + String(", ") + String(_Y) + String(", ") + String(_T);
 }
 
@@ -32,7 +39,13 @@ String Point::affichage(){
  * classe Chemin
  * *************/
  
-void Chemin::init(Point PointDebut, Point PointFin)
+Chemin::Chemin()
+{
+  _numeroPointActuel = 0;
+  _nombrePoints = 0;
+}
+
+Chemin::Chemin(Point PointDebut, Point PointFin)
 {
   _PointDebut = PointDebut;
   _PointFin = PointFin;
@@ -40,18 +53,18 @@ void Chemin::init(Point PointDebut, Point PointFin)
   _nombrePoints = 1;
 }
 
-Point Chemin::getPointDebut(){return _PointDebut;}
-Point Chemin::getPointFin(){return _PointFin;}
-Point Chemin::getPointActuel(){return _PointActuel;}
+Point Chemin::getPointDebut() const{return _PointDebut;}
+Point Chemin::getPointFin() const{return _PointFin;}
+Point Chemin::getPointActuel() const{return _PointActuel;}
 
 void Chemin::setPointDebut(Point PointDebut){_PointDebut = PointDebut;}
 void Chemin::setPointFin(Point PointFin){_PointFin = PointFin;}
 void Chemin::setPointActuel(Point PointActuel){_PointActuel = PointActuel;}
 
-int Chemin::getNumeroPointActuel(){return _numeroPointActuel;}
-int Chemin::getNombrePoints(){return _nombrePoints;}
+int Chemin::getNumeroPointActuel() const{return _numeroPointActuel;}
+int Chemin::getNombrePoints() const{return _nombrePoints;}
  
-String Chemin::affichage()
+String Chemin::affichage() const
 {
   String texte="";
   for (int i=0; i<_nombrePoints; i++){
@@ -70,7 +83,7 @@ Point Chemin::avancerPointSuivant()
   return _PointActuel;
 }
 
-Point Chemin::getPointParNumero(int numero)
+Point Chemin::getPointParNumero(int numero) const
 {
   Point point = _PointActuel;
   if(numero>=0 && numero<_nombrePoints){
@@ -109,7 +122,7 @@ void Chemin::removePoint(int numero){
   return;
 }
 
-void Chemin::cheminRetour(){
+Chemin Chemin::cheminRetour(){
   // still to code
   Chemin chemin;
   chemin.setPointDebut(this->getPointActuel());
@@ -118,5 +131,5 @@ void Chemin::cheminRetour(){
     chemin.addPoint(longueur, this->_Points[i]);
     longueur++;
   }
-  return;
+  return chemin;
 }
