@@ -1,9 +1,11 @@
 import csv
 from .ino import serial as ardu
 
-#X Y Temperature Pression Puissance/VitesseDuVent 
-#OrientationDuVent Magnetique DistanceParcourue(?)
-
+#X/Y/°C/Pa (pression)/Puissance:Vitesse Du Vent/ Orientation Du Vent/ H (magnétique)
+# Données enregistrés dans carthographie/graphe sous le format 0/0/0/0/0/0/0/0
+#Chaque / signale qu'on passe à la prochaine donnée enregistré 
+#Les données sont enregistré dans 0/0/0/0/0/0/0/0 dans l'ordre décrite à la ligne 4.
+#Consigne : ne vas pas marcher avec excel qui a comme délimitation le ";" => le ";" est réservé pour la communication entre rasberry/Arduino
 
 def recevoir_donnees(): #D
     #Fonction qui va recevoir les données collectés par les capteurs, les garder dans data et les envoyer.
@@ -13,31 +15,25 @@ def recevoir_donnees(): #D
     data = ardu.serialPull(1000)[0].rsplit(';')[0] #Supposons que les données vont être envoyés de sorte : ['0/0/0/0/0/0/0/0;null;;']
     return data
 
-def recuperation_cartographie(): #D
-    #Récupere les données dans le fichier csv qui contiendra/contient les données des emplacements 
-    #scannes pour la cartographie dans une liste 'array'
-    #array : list , contient le fichier csv  
-    
-    ouverture = open('cartographie.csv','r')
-    array = [0]
-    for ajouter in ouverture :
-        array.append(ajouter.rstrip().split(';'))
-    ouverture.close
-    array.pop(0)
-    return array
+def vide_ou_non ():
+  ouvrir = open("cartographie.csv",'r')
+  for i in ouvrir :
+    ouvrir.close()
+    return False
+  ouvrir.close()
+  return True
 
 def ajouter_csv():
-    #data : liste argument , liste qui retiens les donnees des capteurs de l'emplacement etudie
     #La fonction va ajouter une liste dans le fichier CSV.
+    #typ : str, contient le paramètre que dois utiliser la fonction open()
     
     data = recevoir_donnees()
-    typ = "o"
-    if recuperation_cartographie()[0] != '':
-        typ = "a"
-    else :
+    if vide_ou_non():
         typ = "w"
+    else :
+        typ = "a"
         
     o = open('cartographie.csv',typ,newline='')
-    m = csv.writer(o)
+    m = csv.writer(o, delimiter = ",")
     m.writerow(data)
     o.close()
