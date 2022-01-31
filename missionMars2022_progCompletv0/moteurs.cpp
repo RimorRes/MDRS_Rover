@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "specifications.h"
 extern PIN_spec myPINs;
+extern Rover_spec rover_spec;
 #include "moteurs.h"
 
 Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_moteur_3, int PIN_moteur_4, int PIN_mesure_tension_alim){
@@ -40,96 +41,68 @@ float Moteur::actualiseDelayTime(){
 
   //Serial.println("Delaytime: " + String(t));
 
+  _delayTime = t;
   return t;
-}
-
-/*void loop()
-{ 
-  // Rotate the Motor A clockwise
-  avancer_m('A', 1, 1.0);
-  delay(1000);
-}*/
-
-/*//fonction pour lire la tension et faire les conversions => retourne le temps d'activation POUR 1 TOUR
-float get_delaytime(){
-  int sensorValue = analogRead(A0);
-  
-  //analogRead retourne une valeur entre (0 pour 0 volts) et (1023 pour 5 volts)
-  //de plus, la tension reçue a été divisée par 3 donc on la reconvertit
-  float voltage = sensorValue * (5.0 / 1023.0) * 3 * 1.035;
-  
-  Serial.println("Voltage:");
-  Serial.println(voltage);
-
-  //conversion pour trouver (numero magique = ~30)
-
-  float t = 1000 * (30 / voltage);
-
-  Serial.println("Delaytime:");
-  Serial.println(t);
-
-  return t;
-  
 }
 
 //fonction pour activer le moteur <moteur> dans le sens <sens>
-void activer(char moteur, int sens){
+void Moteur::activer(char moteur, int sens) const{
 
   if (moteur == 'A'){
     if (sens == 1){
-      digitalWrite(IN1, HIGH);
-      digitalWrite(IN2, LOW);
+      digitalWrite(_PIN_moteur_1, HIGH);
+      digitalWrite(_PIN_moteur_2, LOW);
     }
     if (sens == 2){
-      digitalWrite(IN1, LOW);
-      digitalWrite(IN2, HIGH);
+      digitalWrite(_PIN_moteur_1, LOW);
+      digitalWrite(_PIN_moteur_2, HIGH);
       }
   }
   if (moteur == 'B'){
     if (sens == 1){
-      digitalWrite(IN3, HIGH);
-      digitalWrite(IN4, LOW);
+      digitalWrite(_PIN_moteur_3, HIGH);
+      digitalWrite(_PIN_moteur_4, LOW);
     }
     if (sens == 2){
-      digitalWrite(IN3, LOW);
-      digitalWrite(IN4, HIGH);
+      digitalWrite(_PIN_moteur_3, LOW);
+      digitalWrite(_PIN_moteur_4, HIGH);
       }
   }
   
 }
 
 //fonction pour desactiver le moteur <moteur>
-void desactiver(char moteur) {
+void Moteur::desactiver(char moteur) const {
 
   if (moteur == 'A'){
-    digitalWrite(IN1, HIGH);
-    digitalWrite(IN2, HIGH);
+    digitalWrite(_PIN_moteur_1, HIGH);
+    digitalWrite(_PIN_moteur_2, HIGH);
   }
   if (moteur == 'B'){
-    digitalWrite(IN3, HIGH);
-    digitalWrite(IN4, HIGH);
+    digitalWrite(_PIN_moteur_3, HIGH);
+    digitalWrite(_PIN_moteur_4, HIGH);
   }
   
 }
 
 //fonction pour avancer un nombre <t> de tours
-void avancer_t(char moteur, int sens, float tours){
-  Serial.println("Avancer tours START");
-  float delaytime = get_delaytime();
-  float tours_delaytime = delaytime * tours;
+void Moteur::avancer_t(char moteur, int sens, float tours){
+  //Serial.println("Avancer tours START");
+  _delayTime = actualiseDelayTime();
+  float tours_delaytime = _delayTime * tours;
   activer(moteur, sens);
   delay(tours_delaytime);
   desactiver(moteur);
-  Serial.println("Avancer tours END");
+  //Serial.println("Avancer tours END");
 }
 
 //fonction pour avancer un nombre <m> de mètres
-void avancer_m(char moteur, int sens, float m){
+void Moteur::avancer_m(char moteur, int sens, float m){
   Serial.println("Avancer metres START");
   //le diamètre des roues est de 17.5cm donc la circonférence est de 55cm soit 0.55m
   //afin de convertir les mètres en tours, on multiplie les mètres par 1/0.55 soit 1.82
-  float tours = m * 1.82;
+  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float tours = m / perimetre;
   avancer_t(moteur, sens, tours);
   Serial.println("Avancer metres END");
 }
-*/
