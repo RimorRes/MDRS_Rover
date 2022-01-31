@@ -3,6 +3,7 @@
 ************************************************************************/
 
 #include <Arduino.h>
+extern String successionOrdresMarche;
 #include "deplacement.h"
 
 /**************
@@ -132,4 +133,18 @@ Chemin Chemin::cheminRetour(){
     longueur++;
   }
   return chemin;
+}
+
+// A implémenter
+void suivreOrdreMarchePonctuel(String ordreMarche){
+  // analyser chaîne de caractères format :
+  //    deux caractères pour la nature de l'ordre de marche
+  //    un underscore
+  //    cinq caractères pour le paramètre numérique (à extraire)
+  //    un point virgule
+  //
+  // puis utiliser les fonctions précédentes pour exécuter cf moteurs.h
+  
+  // garde mémoire du chemin suivi
+  successionOrdresMarche.concat(ordreMarche);
 }

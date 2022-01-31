@@ -97,7 +97,7 @@ boolean OK_init_moteurs, OK_moteurs;  // initialisation capteur température int
 String msg_alerte = "tout va bien; ";
 
 /* mémoire du rover */
-String successionOrdresMarche = "";
+String successionOrdresMarche = ""; // déclarer extern en tête de déplacement.cpp
 String cheminSuivi = "";
 
 /* mémoire tampon */
@@ -108,6 +108,7 @@ void setup()
   Serial.begin(9600);                       
   while(!Serial){;}                         // On attend que le port série soit disponible
 // la ligne précédente est-elle à enlever lorsque ce ne sera plus le moniteur série ?
+// On risque de paralyser le rover si la comm série ne fonctionne pas
   delay(1000);
   Wire.begin(); //Join I2C Bus
   
@@ -284,114 +285,4 @@ boolean emettreMessage(String message){
     radio.write(&msg, sizeof(msg));     // Envoi de notre message 
     //Serial.write(msg, sizeof(msg));
   }
-}
-
-void avancer2(int dir, int ms, PIN_spec myPINs) {
-  int PIN_moteur1_1 = myPINs.PIN_moteur1_1;
-  int PIN_moteur1_2 = myPINs.PIN_moteur1_2;
-  int PIN_moteur1_3 = myPINs.PIN_moteur1_3;
-  int PIN_moteur1_4 = myPINs.PIN_moteur1_4;
-  
-  if (dir == 1){
-    digitalWrite(PIN_moteur1_1, HIGH);
-    digitalWrite(PIN_moteur1_2, LOW);
-    digitalWrite(PIN_moteur1_3, HIGH);
-    digitalWrite(PIN_moteur1_4, LOW);
-  }
-
-  if (dir ==2){
-    digitalWrite(PIN_moteur1_2, HIGH);
-    digitalWrite(PIN_moteur1_1, LOW);
-    digitalWrite(PIN_moteur1_4, HIGH);
-    digitalWrite(PIN_moteur1_3, LOW);
-  }
-  
-  
-  delay(ms);
-  
-  digitalWrite(PIN_moteur1_1, HIGH);
-  digitalWrite(PIN_moteur1_2, HIGH);
-  digitalWrite(PIN_moteur1_3, HIGH);
-  digitalWrite(PIN_moteur1_4, HIGH);
-}
-
-
-//motor: 'a'ou 'b', dir: 1 clockwise 2 counterclockwise, ms: temps d'activation en ms
-void avancer(char motor, int dir, int ms, PIN_spec myPINs){
-
-  int ia, ib;
-    
-   if (motor == 'a') {
-    ia = myPINs.PIN_moteur1_1; ib = myPINs.PIN_moteur1_2;
-    
-  }
- 
-  if (motor == 'b') {
-    ia = myPINs.PIN_moteur1_3; ib = myPINs.PIN_moteur1_4;
-  }
-  
-  if (dir == 1){
-    digitalWrite(ia, HIGH);
-    digitalWrite(ib, LOW);
-  }
-
-  if (dir ==2){
-    digitalWrite(ib, HIGH);
-    digitalWrite(ia, LOW);
-  }
-  
-  delay(ms);
-  
-  digitalWrite(ia, HIGH);
-  digitalWrite(ib, HIGH);
-  
-}
-
-float lireTensionAlimMoteurs(){ // donne la tension mesurée pour l'alimentation des moteurs, en V
-  float tensionBrute = analogRead(A0); // avec un pont diviseur de tension d'un facteur environ 3
-  float tension = tensionBrute * 5 /1023 *3; //  Ce facteur 3 vient du pont diviseur de tension, qui évite de mettre le 12 V en entrée de l'arduino.
-  return tension;
-}
-  
-void avancerMetres(float dist, Rover_spec rover_spec, PIN_spec myPINs){
-  float tensionAlimEnV = lireTensionAlimMoteurs();
-  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - rover_spec.tensionSeuilAlimMoteurs) * rover_spec.rayonExterneRoueEnMetres;
-  
-  int ms = int(dist / vitesseMetresParSecondes * 1000); // durée d'alimentation des moteurs, en ms
-  
-  digitalWrite(myPINs.PIN_moteur1_1, LOW);
-  digitalWrite(myPINs.PIN_moteur1_2, LOW);
-  digitalWrite(myPINs.PIN_moteur1_3, LOW);
-  digitalWrite(myPINs.PIN_moteur1_4, LOW);
-
-  delay(ms);
-  
-  digitalWrite(myPINs.PIN_moteur1_1, HIGH);
-  digitalWrite(myPINs.PIN_moteur1_2, HIGH);
-  digitalWrite(myPINs.PIN_moteur1_3, HIGH);
-  digitalWrite(myPINs.PIN_moteur1_4, HIGH);
-}
-
-void tournerSurPlaceDegres(int dir, float angle, Rover_spec rover_spec, PIN_spec myPINs){
-//dir: 1 clockwise 2 counterclockwise, angle: angle de rotation en degrés
-  float tensionAlimEnV = lireTensionAlimMoteurs();
-  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - rover_spec.tensionSeuilAlimMoteurs) * rover_spec.rayonExterneRoueEnMetres;
-
-  float dist = rover_spec.rayonSurPlaceEnMetres * angle / 180 * 3.141592654;
-  int ms = int(dist / vitesseMetresParSecondes * 1000); // durée d'alimentation des moteurs, en ms
-  
-  avancer2(dir, ms, myPINs);
-}
-
-void suivreOrdreMarchePonctuel(String ordreMarche){
-  // analyser chaîne de caractères
-  // deux caractères pour la nature de l'ordre de marche
-  // un underscore
-  // cinq caractères pour le paramètre numérique (à extraire)
-  // un point virgule
-  //
-  // utiliser les fonctions précédentes
-  
-  // garde mémoire du chemin suivi
-  successionOrdresMarche.concat(ordreMarche);
 }
