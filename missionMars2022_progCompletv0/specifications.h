@@ -5,11 +5,11 @@
 class PIN_spec
 {
   public:
-    void init(){};
+    //void init();
     const int PIN_moteur1_1 = 4; // avant droit ?
     const int PIN_moteur1_2 = 5; // avant gauche ?
-    const int PIN_moteur1_3 = 6; // arri�re droit ?
-    const int PIN_moteur1_4 = 7; // arri�re gauche ?
+    const int PIN_moteur1_3 = 6; // arrière droit ?
+    const int PIN_moteur1_4 = 7; // arrière gauche ?
     const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
     
     const int PIN_detectObst1_Trig = 8;
@@ -24,8 +24,11 @@ class PIN_spec
 class Rover_spec
 {
   public:
-    void init(){};
+    //void init();
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
     const float rayonSurPlaceEnMetres = 0.42; // Il s'agit du rayon du cercle quand on tourne sur place.
+    const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1
+    const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
+    // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cpp
 };

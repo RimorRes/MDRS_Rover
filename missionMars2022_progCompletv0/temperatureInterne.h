@@ -1,4 +1,4 @@
-/* routines de gestion du capteur TMP102 pour surveiller la température interne du rover */
+/* routines de gestion du capteur TMP102 pour surveiller la tempï¿½rature interne du rover */
 #include<Arduino.h>
 #include <SparkFunTMP102.h>
 

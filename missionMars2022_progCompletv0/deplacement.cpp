@@ -3,8 +3,12 @@
 ************************************************************************/
 
 #include <Arduino.h>
-extern String successionOrdresMarche;
+#include <Math.h>
+#include "specifications.h"
+extern Rover_spec rover_spec;
 #include "deplacement.h"
+extern float directionRover;
+extern String successionOrdresMarche;
 
 /**************
  * classe Point
@@ -135,16 +139,65 @@ Chemin Chemin::cheminRetour(){
   return chemin;
 }
 
-// A implémenter
-void suivreOrdreMarchePonctuel(String ordreMarche){
-  // analyser chaîne de caractères format :
-  //    deux caractères pour la nature de l'ordre de marche
-  //    un underscore
-  //    cinq caractères pour le paramètre numérique (à extraire)
-  //    un point virgule
-  //
-  // puis utiliser les fonctions précédentes pour exécuter cf moteurs.h
+// Génère les ordres de marche permettant de rejoindre le point suivant
+String Chemin::goToNext(){
+  String listeOrdresDeMarche = "";
   
-  // garde mémoire du chemin suivi
-  successionOrdresMarche.concat(ordreMarche);
+  Point pointDepart = getPointParNumero(_numeroPointActuel+1);
+  Point pointArrivee = _PointActuel;
+  float deltaX = pointArrivee.getX()-pointDepart.getX();
+  float deltaY = pointArrivee.getY()-pointDepart.getY();
+
+  // déterminer la direction cible
+  float directionCible; // angle en degré, par rapport à la demi-droite Ox, sens trigonométrique
+  if (abs(deltaX) <= rover_spec.tolerancePosition){
+    if (abs(deltaY) <= rover_spec.tolerancePosition) {directionCible = directionRover;}  // si on est au bon point, on ne change rien !
+    else {
+      if (deltaY > 0) {directionCible = 90;} else {directionCible = -90;} // direction verticale
+    }
+  } else {
+    directionCible = atan(deltaY / deltaX); // en radians
+    directionCible *= 180 / 3.141592654;  // en degrés
+    if (deltaX < 0) {
+      if (directionCible > 0) {directionCible += 90;} else {directionCible -= 90;}
+    }  // valeur entre -180 et 180 degrés
+  }
+  
+  // déterminer l'ordre de marche pour la direction
+  float angleRotation = directionCible - directionRover;
+  if (abs(angleRotation) > rover_spec.toleranceAngle) {
+    if(angleRotation > 0) {
+      listeOrdresDeMarche += "14_"; // tourner à gauche (cf dico des instructions)
+    } else {
+      listeOrdresDeMarche += "13_"; // tourner à droite (cf dico des instructions)
+    }
+    String texteAngle = String(abs(angleRotation),0); // arrondi au degré près
+    listeOrdresDeMarche += texteAngle;
+    listeOrdresDeMarche += ";";
+  }
+
+  // déterminer l'ordre de marche pour la propulsion
+  float distanceCible = distance(pointDepart, pointArrivee);
+  distanceCible = max(distanceCible, 999);  // pour éviter d'avoir plus de 5 caractères au final, avec la virgule et la décimale
+  if (distanceCible > rover_spec.tolerancePosition) {
+    listeOrdresDeMarche += "11_"; // avancer (cf dico des instructions)
+    String texteDistance = String(distanceCible,1); // arrondi au décimètre près
+    listeOrdresDeMarche += texteDistance;
+    listeOrdresDeMarche += ";";    
+  }
+  
+  return listeOrdresDeMarche;
+}
+
+/******************
+ * autres fonctions
+ * ****************/
+ 
+float distance(Point A, Point B) {
+  return sqrt( sq(B.getX()-A.getX()) + sq(B.getY()-A.getY()) );
+}
+
+void goHome(){
+  Serial.println("E.T. maison ...");
+  Serial.println("...encore à coder, désolé !");
 }

@@ -85,6 +85,8 @@ FONCTIONNALITES VARIEES
 ***********************/
 
 #include "deplacement.h"
+Chemin chemin;
+float directionRover = 0;
 
 /**********************
 VARIABLES GLOBALES CODE
@@ -196,12 +198,13 @@ void serialEvent(){
   return;
 }
 
-/*************************
-GROS BAZAR DE FONCTIONS...
-**************************/
+/**************************
+LA FONCTION D'EXECUTION CLE
+***************************/
 
 // déclarer en tête de serialComm.cpp
-void Run(String INSTRUCTION){ // Reads the instruction to call it after. 
+void Run(String INSTRUCTION){ // Reads the instruction to call it after.
+  // Une seule instruction lue à la fois. Appeler plusieurs fois au besoin.
     if (INSTRUCTION != ""){
 #ifdef AFFICHAGE
       Serial.println("instruction dans Run : " + INSTRUCTION);
@@ -237,16 +240,48 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
 #endif
       }
       
-      switch(numFonction){
-        case 1:
+      switch(numFonction){  // cf dico des instructions
+        case 0: // code d'urgence
+          goHome(); break;  // retour base
+        case 1: // requête de transmission d'un message via l'antenne
+          ; break;
+        case 2: // requête de transmission de la position actuelle via le bus série
+          ; break;
+        case 3: // requête de transmission du bilan d'activité du rover
+          // attention, ça peut être long.
+          ; break;
+        case 4: // requête de modification du point cible, et donc du chemin
+          ; break;
+        case 5: // requête de transmission des distances à l'obstacle
+          ; break;
+// ci-dessous les ordres de marche
+//    deux caractères pour la nature de l'ordre de marche
+//    un underscore
+//    cinq caractères pour le paramètre numérique (à extraire)
+// mais je pourrais assouplir, maintenant ?
+        case 11:  // ordre de marche : avancer
+          successionOrdresMarche += INSTRUCTION + ";";
+          ;// ???
+          break;
+        case 12:  // ordre de marche : reculer
+          successionOrdresMarche += INSTRUCTION + ";";
+          ; break;
+        case 13:  // ordre de marche : tourner à droite
+          successionOrdresMarche += INSTRUCTION + ";";
+          ; break;
+        case 14:  // ordre de marche : tourner à gauche
+          successionOrdresMarche += INSTRUCTION + ";";
+          ; break;
+// ce qui suit est à but de test
+        case 101:
           Serial.println("Youpi !"); break;
-        case 2:
+        case 102:
           ;//noel(); break;
-        case 3:
+        case 103:
           if(numArg != 0){serialPush(arguments[0]);} break;
-        case 4:
+        case 104:
           if(numArg != 0){Serial.println(arguments[0]);} break;
-        case 5:
+        case 105:
           if(numArg != 0){
             String message = "";
             for (i=0;i<numArg;i++){
@@ -255,18 +290,23 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
             }
             Serial.println(message);
           } break;
-        case 6:
+        case 106:
           emettreMessage(msg_alerte); break;
-        case 7:
+        case 107:
           emettreMessage("123456789_123456789_123456789_123456789"); break;
         default: // Case of unmatched function. 
 #ifdef AFFICHAGE
             Serial.println("Ca serait gentil de me donner des instructions que je comprends !");
 #endif
-            return; // Panic.
-      }
-    }
+            return; // Panic. Something better to do ?
+      } // fin du  : switch(numFonction)
+    } // fin du : if (INSTRUCTION != "")
 }
+
+
+/*************************
+GROS BAZAR DE FONCTIONS...
+**************************/
 
 boolean emettreMessage(String message){
   int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)

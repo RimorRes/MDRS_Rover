@@ -36,11 +36,12 @@ class Chemin  // utilise la classe Point
     int getNumeroPointActuel() const;
     int getNombrePoints() const;
     String affichage() const; // ajouté pour les besoins de test
-    Point avancerPointSuivant();
+    Point avancerPointSuivant();  
     Point getPointParNumero(int numero) const;
     void addPoint(int numero, Point point);
     void removePoint(int numero);
     Chemin cheminRetour();
+    String goToNext();  // Génère les ordres de marche permettant de rejoindre le point suivant
   private:
     Point _PointDebut;
     Point _PointFin;
@@ -49,3 +50,7 @@ class Chemin  // utilise la classe Point
     int _nombrePoints;
     Point _Points[];
 };
+
+float distance(Point A, Point B);
+
+void goHome();
