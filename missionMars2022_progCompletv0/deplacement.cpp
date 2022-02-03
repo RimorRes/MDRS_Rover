@@ -6,6 +6,7 @@
 #include <Math.h>
 #include "specifications.h"
 extern Rover_spec rover_spec;
+extern Rover_config rover_config;
 #include "deplacement.h"
 extern float directionRover;
 extern String successionOrdresMarche;
@@ -150,8 +151,8 @@ String Chemin::goToNext(){
 
   // déterminer la direction cible
   float directionCible; // angle en degré, par rapport à la demi-droite Ox, sens trigonométrique
-  if (abs(deltaX) <= rover_spec.tolerancePosition){
-    if (abs(deltaY) <= rover_spec.tolerancePosition) {directionCible = directionRover;}  // si on est au bon point, on ne change rien !
+  if (abs(deltaX) <= rover_config.tolerancePosition){
+    if (abs(deltaY) <= rover_config.tolerancePosition) {directionCible = directionRover;}  // si on est au bon point, on ne change rien !
     else {
       if (deltaY > 0) {directionCible = 90;} else {directionCible = -90;} // direction verticale
     }
@@ -165,7 +166,7 @@ String Chemin::goToNext(){
   
   // déterminer l'ordre de marche pour la direction
   float angleRotation = directionCible - directionRover;
-  if (abs(angleRotation) > rover_spec.toleranceAngle) {
+  if (abs(angleRotation) > rover_config.toleranceAngle) {
     if(angleRotation > 0) {
       listeOrdresDeMarche += "14_"; // tourner à gauche (cf dico des instructions)
     } else {
@@ -179,7 +180,7 @@ String Chemin::goToNext(){
   // déterminer l'ordre de marche pour la propulsion
   float distanceCible = distance(pointDepart, pointArrivee);
   distanceCible = max(distanceCible, 999);  // pour éviter d'avoir plus de 5 caractères au final, avec la virgule et la décimale
-  if (distanceCible > rover_spec.tolerancePosition) {
+  if (distanceCible > rover_config.tolerancePosition) {
     listeOrdresDeMarche += "11_"; // avancer (cf dico des instructions)
     String texteDistance = String(distanceCible,1); // arrondi au décimètre près
     listeOrdresDeMarche += texteDistance;

@@ -28,7 +28,13 @@ class Rover_spec
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
     const float rayonSurPlaceEnMetres = 0.42; // Il s'agit du rayon du cercle quand on tourne sur place.
+};
+
+class Rover_config
+{
+  public:
+    // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cp
     const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1
     const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
-    // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cpp
+    const float pasChemin = 10; // pas pour la génération des points intermédiaires sur le chemin, en mètres  
 };

@@ -25,6 +25,7 @@ SPECIFICATIONS
 #include "specifications.h"
 PIN_spec myPINs; // définition des broches. utilisé dans moteurs.cpp
 Rover_spec rover_spec; // spécifications du rover (géométrie, valeurs limites, ...)
+Rover_config rover_config;  // configuration du rover (paramètres du code)
 
 /*********************************
 CONNEXION DES PERIPHERIQUES EN I2C
