@@ -43,7 +43,8 @@ class Chemin  // utilise la classe Point
     void removePoint(int numero);
     Chemin cheminInverse() const; // renvoie le chemin inverse, ne modifie rien
     String goToNext();  // Génère les ordres de marche permettant de rejoindre le point suivant
-    void recalculer();
+    void recalculer();  // calcule des points intermédiaires entre l'actuel et le final
+    void actualiser(Point pointGPS);  // met à jour _PointActuel
   private:
     Point _PointDebut;
     Point _PointFin;

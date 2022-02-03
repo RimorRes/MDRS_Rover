@@ -222,6 +222,18 @@ void Chemin::recalculer() {
   return;
 }
 
+void Chemin::actualiser(Point pointGPS){
+  // met à jour _PointActuel
+  if (_numeroPointActuel == _nombrePoints-1){return;}  // rien à faire : on est à la fin
+  
+  float distanceToNext = distance(pointGPS, _Points[_numeroPointActuel+1]);
+  if (distanceToNext < rover_config.tolerancePosition){ // on est arrivé au point suivant
+    _numeroPointActuel++;
+    setPointActuel(_Points[_numeroPointActuel]);
+  }
+  return;
+}
+
 
 /******************
  * autres fonctions

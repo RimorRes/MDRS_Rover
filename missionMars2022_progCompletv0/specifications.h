@@ -36,5 +36,5 @@ class Rover_config
     // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cp
     const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1
     const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
-    const float pasChemin = 10; // pas pour la génération des points intermédiaires sur le chemin, en mètres  
+    const float pasChemin = 3; // pas pour la génération des points intermédiaires sur le chemin, en mètres  
 };
