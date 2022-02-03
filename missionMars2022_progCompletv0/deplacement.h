@@ -17,6 +17,8 @@ class Point
     void setY(float Y);
     void setT(float T);
     String affichage() const; // ajouté pour les besoins de test
+    String toString() const;  // chaîne formattée avec les coordonnées
+    Point relative(Point PointOrigine) const; // pour changer l'origine du repère
   private:
     float _X;
     float _Y;
@@ -44,7 +46,7 @@ class Chemin  // utilise la classe Point
     Chemin cheminInverse() const; // renvoie le chemin inverse, ne modifie rien
     String goToNext();  // Génère les ordres de marche permettant de rejoindre le point suivant
     void recalculer();  // calcule des points intermédiaires entre l'actuel et le final
-    void actualiser(Point pointGPS);  // met à jour _PointActuel
+    void actualiser(Point pointGPS);  // met à jour _PointActuel et liste cheminSuivi
   private:
     Point _PointDebut;
     Point _PointFin;

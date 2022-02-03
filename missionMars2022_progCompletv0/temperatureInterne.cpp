@@ -88,9 +88,9 @@ String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
   Serial.println(" °C");
 #endif
   if (temperature_int < Tint_min){
-    phrase_alerte.concat("température interne trop basse; ");
+    phrase_alerte.concat("température interne trop basse\n");
   } else if (temperature_int > Tint_max){
-    phrase_alerte.concat("température interne trop haute; ");
+    phrase_alerte.concat("température interne trop haute\n");
   }
   
   return phrase_alerte;

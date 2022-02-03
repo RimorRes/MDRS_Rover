@@ -8,8 +8,11 @@
 extern Rover_spec rover_spec;
 extern Rover_config rover_config;
 #include "deplacement.h"
+extern Chemin chemin;
 extern float directionRover;
+extern boolean goingHome;
 extern String successionOrdresMarche;
+extern String cheminSuivi;
 
 /**************
  * classe Point
@@ -48,6 +51,18 @@ String Point::affichage() const{
   return String(_X) + String(", ") + String(_Y) + String(", ") + String(_T);
 }
 
+String Point::toString() const{
+  // chaîne formattée avec les coordonnées
+  return String(_X) + "_" + String(_Y) + ";";
+  // Je n'ai pas mis _T : si on le fait, attention à changer le dictionnaire des instructions
+}
+
+Point Point::relative(Point PointOrigine) const{
+  // pour changer l'origine du repère
+  return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _T-PointOrigine.getT());
+}
+
+
 /***************
  * classe Chemin
  * *************/
@@ -63,7 +78,8 @@ Chemin::Chemin(Point pointDebut, Point pointFin)
   _PointDebut = pointDebut;
   _PointFin = pointFin;
   _Points[0] = _PointDebut;
-  _nombrePoints = 1;
+  _Points[1] = _PointFin;
+  _nombrePoints = 2;
 }
 
 Point Chemin::getPointDebut() const{return _PointDebut;}
@@ -230,6 +246,7 @@ void Chemin::actualiser(Point pointGPS){
   if (distanceToNext < rover_config.tolerancePosition){ // on est arrivé au point suivant
     _numeroPointActuel++;
     setPointActuel(_Points[_numeroPointActuel]);
+    cheminSuivi+=_PointActuel.toString();
   }
   return;
 }
@@ -244,6 +261,16 @@ float distance(Point A, Point B) {
 }
 
 void goHome(){
-  Serial.println("E.T. maison ...");
-  Serial.println("...encore à coder, désolé !");
+  // retour à la base, suite à un code d'urgence
+  goingHome = true;
+  
+  // générer le chemin à suivre
+  // Il est contenu dans les points antérieurs au point actuel
+  Chemin cheminBase = Chemin(chemin.getPointActuel(), chemin.getPointDebut());
+  for (int i=chemin.getNombrePoints()-2; i>0; i--){ // on parcourt le chemin actuel à rebours
+    cheminBase.addPoint(cheminBase.getNombrePoints()-2, chemin.getPointParNumero(i));  // ajout en avant-dernière position
+  }
+
+  chemin = cheminBase;
+  return;
 }

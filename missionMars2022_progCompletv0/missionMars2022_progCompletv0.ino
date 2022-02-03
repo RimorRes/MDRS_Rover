@@ -86,7 +86,8 @@ FONCTIONNALITES VARIEES
 ***********************/
 
 #include "deplacement.h"
-Chemin chemin;
+Chemin chemin;  // à initialiser !!
+Point centreRepere;
 float directionRover = 0;
 
 /**********************
@@ -97,7 +98,8 @@ boolean OK_init_Tint, OK_Tint;  // initialisation capteur température interne, 
 float Tint_min = 1; // seuil d'alerte bas pour la température interne
 float Tint_max = 80; // seuil d'alerte haut pour la température interne
 boolean OK_init_moteurs, OK_moteurs;  // initialisation capteur température interne, état température interne
-String msg_alerte = "tout va bien; ";
+String msg_alerte = "tout va bien\n";
+boolean goingHome = false;
 
 /* mémoire du rover */
 String successionOrdresMarche = ""; // déclarer extern en tête de déplacement.cpp
@@ -117,13 +119,13 @@ void setup()
   
   OK_init_Tint = init_tmp102(sensorTinterne);
   if(!OK_init_Tint){
-    msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102); ");
+    msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102)\n");
   }
 
   OK_init_moteurs = moteur1.init_moteur();
 /*OK_init_moteurs = init_moteurs(myPINs);
   if(!OK_init_moteurs){  // impossible avec le code actuel
-    msg_alerte.concat("problème d'initialisation des moteurs; ");
+    msg_alerte.concat("problème d'initialisation des moteurs\n");
   }*/
   
   // initialisation de l'antenne RF
@@ -139,9 +141,12 @@ void setup()
   Serial.println("");
 #endif
 
-pinMode(8, OUTPUT); // LED bleue
-pinMode(9, OUTPUT); // LED jaune
+  pinMode(8, OUTPUT); // LED bleue
+  pinMode(9, OUTPUT); // LED jaune
 
+  cheminSuivi = chemin.getPointDebut().toString();
+  Point pointGPS; // à mesurer
+  centreRepere = Point(pointGPS);
 }
 
 void loop()
@@ -243,14 +248,35 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
       
       switch(numFonction){  // cf dico des instructions
         case 0: // code d'urgence
-          goHome(); break;  // retour base
+          goHome();  // retour base
+          messageBus = "0"; // on annonce qu'on revient
+          parlerBus();
+          break;
         case 1: // requête de transmission d'un message via l'antenne
-          ; break;
+          emettreMessage(arguments[0]);
+          break;
         case 2: // requête de transmission de la position actuelle via le bus série
-          ; break;
+          messageBus+="2_" + chemin.getPointActuel().toString();  // ";" déjà inclus dans toString()
+          break;
         case 3: // requête de transmission du bilan d'activité du rover
           // attention, ça peut être long.
-          ; break;
+          switch (arguments[0].toInt()){
+            case 1: // demande de transmission des messages d'alerte
+              messageBus+="3_1_" + msg_alerte + ";"; break;
+            case 2: {// demande de transmission de la succession des ordres de marche
+              String texte = successionOrdresMarche;
+              texte.replace(";", "\n");
+              messageBus+="3_2_" + texte + ";"; break;
+            }
+            case 3: {// demande de transmission de l'historique du chemin suivi
+              String texte = cheminSuivi;
+              texte.replace(";", "\n");
+              messageBus+="3_3_" + texte + ";"; break;
+            }
+            default:
+              break;
+          }
+          break;
         case 4: {// requête de modification du point cible, et donc du chemin
           Point pointFinNouveau = Point(arguments[0].toFloat(), arguments[1].toFloat());
           // la conversion se fait avec arrondi au centième, si la chaîne est trop longue, ça tronque
