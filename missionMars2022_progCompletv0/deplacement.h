@@ -8,6 +8,7 @@ class Point
 {
   public:
     Point();
+    Point(float X, float Y);
     Point(float X, float Y, float T);
     float getX() const;
     float getY() const;
@@ -26,13 +27,13 @@ class Chemin  // utilise la classe Point
 {
   public:
     Chemin();
-    Chemin(Point PointDebut, Point PointFin);
+    Chemin(Point pointDebut, Point pointFin);
     Point getPointDebut() const;
     Point getPointFin() const;
     Point getPointActuel() const;
-    void setPointDebut(Point PointDebut);
-    void setPointFin(Point PointFin);
-    void setPointActuel(Point PointActuel);
+    void setPointDebut(Point pointDebut);
+    void setPointFin(Point pointFin);
+    void setPointActuel(Point pointActuel);
     int getNumeroPointActuel() const;
     int getNombrePoints() const;
     String affichage() const; // ajouté pour les besoins de test
@@ -40,8 +41,9 @@ class Chemin  // utilise la classe Point
     Point getPointParNumero(int numero) const;
     void addPoint(int numero, Point point);
     void removePoint(int numero);
-    Chemin cheminRetour();
+    Chemin cheminInverse() const; // renvoie le chemin inverse, ne modifie rien
     String goToNext();  // Génère les ordres de marche permettant de rejoindre le point suivant
+    void recalculer();
   private:
     Point _PointDebut;
     Point _PointFin;

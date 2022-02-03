@@ -22,6 +22,13 @@ Point::Point()
   _T = 0;
 }
 
+Point::Point(float X, float Y)
+{
+  _X = X;
+  _Y = Y;
+  _T = 0;
+}
+
 Point::Point(float X, float Y, float T)
 {
   _X = X;
@@ -51,10 +58,10 @@ Chemin::Chemin()
   _nombrePoints = 0;
 }
 
-Chemin::Chemin(Point PointDebut, Point PointFin)
+Chemin::Chemin(Point pointDebut, Point pointFin)
 {
-  _PointDebut = PointDebut;
-  _PointFin = PointFin;
+  _PointDebut = pointDebut;
+  _PointFin = pointFin;
   _Points[0] = _PointDebut;
   _nombrePoints = 1;
 }
@@ -63,9 +70,9 @@ Point Chemin::getPointDebut() const{return _PointDebut;}
 Point Chemin::getPointFin() const{return _PointFin;}
 Point Chemin::getPointActuel() const{return _PointActuel;}
 
-void Chemin::setPointDebut(Point PointDebut){_PointDebut = PointDebut;}
-void Chemin::setPointFin(Point PointFin){_PointFin = PointFin;}
-void Chemin::setPointActuel(Point PointActuel){_PointActuel = PointActuel;}
+void Chemin::setPointDebut(Point pointDebut){_PointDebut = pointDebut;}
+void Chemin::setPointFin(Point pointFin){_PointFin = pointFin;}
+void Chemin::setPointActuel(Point pointActuel){_PointActuel = pointActuel;}
 
 int Chemin::getNumeroPointActuel() const{return _numeroPointActuel;}
 int Chemin::getNombrePoints() const{return _nombrePoints;}
@@ -122,19 +129,19 @@ void Chemin::removePoint(int numero){
     } else {  // Le point est enlevé à la fin...
       _PointFin = _Points[_nombrePoints-2];  // On change le point final.
     }
-    // Le point _Points[_nombrePoints-1] est laissé à son ancienne valeur.
+    // Le point _Points[_nombrePoints-1] est laissé à son ancienne valeur,
+    // mais il ne sera jamais lu, peut-on espérer.
     _nombrePoints--;
   }
   return;
 }
 
-Chemin Chemin::cheminRetour(){
-  // still to code
+Chemin Chemin::cheminInverse() const{
   Chemin chemin;
-  chemin.setPointDebut(this->getPointActuel());
+  chemin.setPointDebut(getPointActuel());
   int longueur =1;
   for (int i=_numeroPointActuel; i>=0; i--){
-    chemin.addPoint(longueur, this->_Points[i]);
+    chemin.addPoint(longueur, _Points[i]);
     longueur++;
   }
   return chemin;
@@ -189,6 +196,32 @@ String Chemin::goToNext(){
   
   return listeOrdresDeMarche;
 }
+
+void Chemin::recalculer() {
+  // recalcule le chemin entre le point actuel et le point final
+  
+  if (_numeroPointActuel == _nombrePoints-1){return;}  // rien à faire : on est à la fin
+  float distanceCible = distance(_PointActuel, _PointFin);
+  if (distanceCible < rover_config.tolerancePosition){return;}  // rien à faire : on est juste à côté
+  
+  // nettoyer le chemin : on enlève tout entre l'actuel et le final
+  for (int i=_numeroPointActuel+1; i<_nombrePoints-1; i++){
+    removePoint(i);
+  }
+  
+  // on recalcule des points intermédiaires
+  int nbrPoints = distanceCible / rover_config.pasChemin; // nombre de points à rajouter pour interpoler
+  float taillePasX = ( _PointFin.getX() - _PointActuel.getX() ) / (nbrPoints+1);  // X à parcourir pour chaque pas (un pas de plus que le nombre de points supplémentaires)
+  float taillePasY = ( _PointFin.getY() - _PointActuel.getY() ) / (nbrPoints+1);  // idem sur Y
+  Point pointAjout; // le point à ajouter
+  for (int i=1; i<nbrPoints+1; i++){
+    pointAjout = Point(_PointActuel.getX()+i*taillePasX, _PointActuel.getY()+i*taillePasY);
+    addPoint(_numeroPointActuel+i, pointAjout);
+  }
+  
+  return;
+}
+
 
 /******************
  * autres fonctions

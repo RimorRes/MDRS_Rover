@@ -251,8 +251,13 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
         case 3: // requête de transmission du bilan d'activité du rover
           // attention, ça peut être long.
           ; break;
-        case 4: // requête de modification du point cible, et donc du chemin
-          ; break;
+        case 4: {// requête de modification du point cible, et donc du chemin
+          Point pointFinNouveau = Point(arguments[0].toFloat(), arguments[1].toFloat());
+          // la conversion se fait avec arrondi au centième, si la chaîne est trop longue, ça tronque
+          chemin.setPointFin(pointFinNouveau);
+          chemin.recalculer();
+          break;
+        }
         case 5: // requête de transmission des distances à l'obstacle
           ; break;
 // ci-dessous les ordres de marche
