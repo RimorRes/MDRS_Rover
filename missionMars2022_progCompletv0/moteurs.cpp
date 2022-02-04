@@ -6,10 +6,17 @@
 **********************/
 
 #include <Arduino.h>
-#include "specifications.h"
+#if !defined SPECIFICATIONS_H
+  #include "specifications.h"
+  #define SPECIFICATIONS_H
+#endif 
 extern PIN_spec myPINs;
 extern Rover_spec rover_spec;
-#include "moteurs.h"
+extern Rover_config rover_config;
+#if !defined MOTEURS_H
+  #include "moteurs.h"
+  #define MOTEURS_H
+#endif
 
 Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_moteur_3, int PIN_moteur_4, int PIN_mesure_tension_alim){
   _PIN_moteur_1 = PIN_moteur_1;
@@ -30,20 +37,23 @@ boolean Moteur::init_moteur() {
   return true;  // pas encore de test de réussite !
 }
 
-float Moteur::actualiseDelayTime(){
+float Moteur::getTensionAlim() const{
   int sensorValue = analogRead(_PIN_mesure_tension_alim);
-  
-  //analogRead retourne une valeur entre (0 pour 0 volts) et (1023 pour 5 volts)
+    //analogRead retourne une valeur entre (0 pour 0 volts) et (1023 pour 5 volts)
   //de plus, la tension reçue a été divisée par 3 donc on la reconvertit
-  float voltage = sensorValue * (5.0 / 1023.0) * 3 * 1.035;
-  
-  //Serial.println("Voltage: " + String(voltage));
+  float voltage = sensorValue * (5.0 / 1023.0) * 3 * 1.035;  // facteur magique parce que ce n'est pas exactement 3
+  return voltage;
+}
+
+float Moteur::actualiseDelayTime(){
+  float voltage = getTensionAlim();
+  //voltage = max(voltage, rover_config.tensionCodeMin);  // protège contre mesure aberrante
+  //voltage = min(voltage, rover_config.tensionCodeMax);  // protège contre mesure aberrante
 
   //conversion pour trouver (numero magique = ~30)
   float t = 1000 * (30 / voltage);
 
   //Serial.println("Delaytime: " + String(t));
-
   _delayTime = t;
   return t;
 }

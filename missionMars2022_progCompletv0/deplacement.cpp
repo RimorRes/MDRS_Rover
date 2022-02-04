@@ -4,10 +4,16 @@
 
 #include <Arduino.h>
 #include <Math.h>
-#include "specifications.h"
+#if !defined SPECIFICATIONS_H
+  #include "specifications.h"
+  #define SPECIFICATIONS_H
+#endif 
 extern Rover_spec rover_spec;
 extern Rover_config rover_config;
-#include "deplacement.h"
+#if !defined DEPLACEMENT_H
+  #include "deplacement.h"
+  #define DEPLACEMENT_H
+#endif 
 extern Chemin chemin;
 extern float directionRover;
 extern boolean goingHome;

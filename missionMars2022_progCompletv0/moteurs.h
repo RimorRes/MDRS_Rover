@@ -9,6 +9,7 @@ class Moteur
   public:
     Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_moteur_3, int PIN_moteur_4, int PIN_mesure_tension_alim);
     boolean init_moteur();
+    float getTensionAlim() const;
     float actualiseDelayTime();
     void activer(char moteur, int sens) const;
     void desactiver(char moteur) const;

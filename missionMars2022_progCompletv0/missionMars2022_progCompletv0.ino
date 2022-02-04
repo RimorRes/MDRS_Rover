@@ -7,10 +7,32 @@
 /****
 TO DO
 *****/
-//  classes : Dans l'absolu, il faudrait passer les publiques en privées. Tant pis. (Fait pour déplacements.)
-// Et puis ce codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
+// pb dernières spéc
+//
+// Ce codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
 // 
-// Gestion des moteurs à passer en classes
+// Gestion des moteurs : gérer la direction
+// Gestion des moteurs : savoir quoi allumer pour avancer ou tourner
+// Ecrire la bouce principale
+// manoeuvre de dégagement : fait par le raspberry
+// manoeuvre de contournement : idem
+// implémenter le GPS --> fin du setup() et loop()
+// mesure de distance à l'obstacle --> à implémenter dans loop()
+// mesure de température interne --> finir implémenter dans loop()
+// finir impléméntation dictionnaire des instruction (fonction Run() ci-dessous à la fin)
+// 
+// specifications.h : initialiser centreRepere d'après la carte, ou faire avec le GPS : décommenter à la fin du setup()
+// specifications.h : initialiser cheminParDefaut
+// 
+// setup()
+// décider du mode d'attente pour le port série USB : while() ou non ? (voir commentaire dans le code)
+//
+// tests à faire
+// classe Point
+// classe Chemin
+// comm série avec le Raspberry(exécu-t-on bien les ordres ?)
+// retester antenne RF 24 sur un helloWorld juste pour voir si spec OK
+// 
  
 /*********************************************
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
@@ -22,11 +44,22 @@ PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
 SPECIFICATIONS
 **************/
 // Pour passer en paramètre des fonctions
-#include "specifications.h"
+#if !defined SPECIFICATIONS_H
+  #include "specifications.h"  // module codé par nous
+  #define SPECIFICATIONS_H
+#endif 
 PIN_spec myPINs; // définition des broches. utilisé dans moteurs.cpp
+       // déclarer extern en tête de moteurs.cpp
 Rover_spec rover_spec; // spécifications du rover (géométrie, valeurs limites, ...)
+       // déclarer extern en tête de déplacement.cpp
+       // déclarer extern en tête de moteurs.cpp
 Rover_config rover_config;  // configuration du rover (paramètres du code)
+       // déclarer extern en tête de déplacement.cpp
+       // déclarer extern en tête de moteurs.cpp
 
+/*******************************************************************************
+            MATERIEL
+********************************************************************************/
 /*********************************
 CONNEXION DES PERIPHERIQUES EN I2C
 **********************************
@@ -45,7 +78,7 @@ MODULES EXTERNES
 ****************/
 /* capteur température interne */
 #include <SparkFunTMP102.h>
-//const int ALERT_PIN = A3; //Si on veut utiliser la sortie alert
+//const int ALERT_PIN = myPINs.PIN_temp_alert; //Si on veut utiliser la sortie alert
 TMP102 sensorTinterne; // donnera la température interne à 0,0625°C près
 /* On peut changer l'adresse par défaut, qui est 0x48 = 1001000.
  * Il faut connecter la broche ADD0 (par défaut : sur la masse)
@@ -59,8 +92,8 @@ TMP102 sensorTinterne; // donnera la température interne à 0,0625°C près
 
 /* détecteurs d'obstacle */
 #include <Ultrasonic.h>
-Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig,myPINs.PIN_detectObst1_Echo); // regarde devant
-Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo); //  regarde en bas
+Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig,myPINs.PIN_detectObst1_Echo); // le seul utilisé pour l'instant
+// Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo);
 
 /* communication série */
 #include "serialComm.h" // module codé par nous
@@ -71,62 +104,72 @@ Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo)
 /* antenne RF */
 #include <SPI.h>
 #include <RF24.h>
-#define pinCE   7             // On associe la broche "CE" du NRF24L01 à la sortie digitale D7 de l'arduino
-#define pinCSN  8             // On associe la broche "CSN" du NRF24L01 à la sortie digitale D8 de l'arduino
 #define tunnel  "PIPE1"       // On définit un "nom de tunnel" (5 caractères), pour pouvoir communiquer d'un NRF24 à l'autre
-RF24 radio(pinCE, pinCSN);    // Instanciation du NRF24L01
+RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01
 const byte adresseAntenne[6] = tunnel;               // Mise au format "byte array" du nom du tunnel
 
 /* moteurs */
-#include "moteurs.h"
+#if !defined MOTEURS_H
+  #include "moteurs.h"  // module codé par nous
+  #define MOTEURS_H
+#endif 
 Moteur moteur1(myPINs.PIN_moteur1_1, myPINs.PIN_moteur1_2, myPINs.PIN_moteur1_3, myPINs.PIN_moteur1_4, myPINs.PIN_mesure_tension_alim);
+Moteur moteur2(myPINs.PIN_moteur2_1, myPINs.PIN_moteur2_2, myPINs.PIN_moteur2_3, myPINs.PIN_moteur2_4, myPINs.PIN_mesure_tension_alim);
 
-/**********************
-FONCTIONNALITES VARIEES
-***********************/
+/*******************************************************************************
+            GLOBALES
+********************************************************************************/
+/* déplacements */
+#if !defined DEPLACEMENT_H
+  #include "deplacement.h"  // module codé par nous
+  #define DEPLACEMENT_H
+#endif 
+Point centreRepere = rover_config.centreRepere;
+float directionRover = rover_config.directionInitiale; // déclarer extern en tête de déplacement.cpp
+Chemin chemin = rover_config.cheminParDefaut;  // à initialiser !! // déclarer extern en tête de déplacement.cpp
 
-#include "deplacement.h"
-Chemin chemin;  // à initialiser !!
-Point centreRepere;
-float directionRover = 0;
-
-/**********************
-VARIABLES GLOBALES CODE
-***********************/
 /* indicateurs d'état */
 boolean OK_init_Tint, OK_Tint;  // initialisation capteur température interne, état température interne
-float Tint_min = 1; // seuil d'alerte bas pour la température interne
-float Tint_max = 80; // seuil d'alerte haut pour la température interne
-boolean OK_init_moteurs, OK_moteurs;  // initialisation capteur température interne, état température interne
+boolean OK_init_moteurs;  // initialisation moteurs
+boolean OK_alim;  // tension alim
 String msg_alerte = "tout va bien\n";
-boolean goingHome = false;
+boolean goingHome = false; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire du rover */
 String successionOrdresMarche = ""; // déclarer extern en tête de déplacement.cpp
-String cheminSuivi = "";
+String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
-/* mémoire tampon */
+/* mémoire tampon comm série USB */
 String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
+/*******************************************************************************
+            SETUP()
+********************************************************************************/
 void setup()
 {
+  // initialisation de la comm série USB (pour le raspberry)
   Serial.begin(9600);                       
   while(!Serial){;}                         // On attend que le port série soit disponible
 // la ligne précédente est-elle à enlever lorsque ce ne sera plus le moniteur série ?
-// On risque de paralyser le rover si la comm série ne fonctionne pas
+// On risque de paralyser le rover si la comm série ne fonctionne pas : remplacer par un temps d'attente comme 2000 ms par exemple ?
   delay(1000);
   Wire.begin(); //Join I2C Bus
   
+  // initialisation du capteur de température interne
   OK_init_Tint = init_tmp102(sensorTinterne);
   if(!OK_init_Tint){
     msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102)\n");
   }
 
+  // initialisation des moteurs
   OK_init_moteurs = moteur1.init_moteur();
-/*OK_init_moteurs = init_moteurs(myPINs);
   if(!OK_init_moteurs){  // impossible avec le code actuel
-    msg_alerte.concat("problème d'initialisation des moteurs\n");
-  }*/
+    msg_alerte.concat("problème d'initialisation du moteur 1\n");
+  }
+  OK_init_moteurs = moteur2.init_moteur();
+  if(!OK_init_moteurs){  // impossible avec le code actuel
+    msg_alerte.concat("problème d'initialisation du moteur 2\n");
+  }
   
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
@@ -141,36 +184,32 @@ void setup()
   Serial.println("");
 #endif
 
-  pinMode(8, OUTPUT); // LED bleue
-  pinMode(9, OUTPUT); // LED jaune
-
-  cheminSuivi = chemin.getPointDebut().toString();
   Point pointGPS; // à mesurer
-  centreRepere = Point(pointGPS);
+  // centreRepere = Point(pointGPS);
+  cheminSuivi = chemin.getPointDebut().toString();
 }
 
+/*******************************************************************************
+            LOOP()
+********************************************************************************/
 void loop()
 {
   if (OK_init_Tint){
-    msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, Tint_min, Tint_max));
+    //msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
   }
-/*
   int dist_1 = ultrasonic_1.Ranging(CM);
-  int dist_2 = ultrasonic_2.Ranging(CM);
+  //int dist_2 = ultrasonic_2.Ranging(CM);
 #ifdef AFFICHAGE
    Serial.print("distance devant : ");
    Serial.print(dist_1);
    Serial.println(" cm");
-   Serial.print("distance vers le bas : ");
+/*   Serial.print("distance vers le bas : ");
    Serial.print(dist_2);
-   Serial.println(" cm");
+   Serial.println(" cm");*/
 #endif
   
-  float tensionBrute = analogRead(A0); // avec un pont diviseur de tension d'un facteur environ 3
-  float tension = tensionBrute * 5 /1023 *3; //  Ce facteur 3 vient du pont diviseur de tension, qui évite de mettre le 12 V en entrée de l'arduino.
+  float tension = moteur1.getTensionAlim();
   //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
-
-  */
   
   // avancer('a', 1, 1000);
 /*  avancerMetres(0.1);
@@ -199,7 +238,10 @@ void loop()
   delay(1000);  // Wait 1000ms
 }
 
-void serialEvent(){
+/*******************************************************************************
+            FONCTIONS UTILES
+********************************************************************************/
+void serialEvent(){ // appeler automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
   lectureBus();
   return;
 }
