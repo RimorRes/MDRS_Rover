@@ -7,15 +7,11 @@
 /****
 TO DO
 *****/
-// pb dernières spéc
-//
-// Ce codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
+// Le codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
 // 
 // Gestion des moteurs : gérer la direction
 // Gestion des moteurs : savoir quoi allumer pour avancer ou tourner
-// Ecrire la bouce principale
-// manoeuvre de dégagement : fait par le raspberry
-// manoeuvre de contournement : idem
+// Ecrire la boucle principale
 // implémenter le GPS --> fin du setup() et loop()
 // mesure de distance à l'obstacle --> à implémenter dans loop()
 // mesure de température interne --> finir implémenter dans loop()
@@ -33,6 +29,8 @@ TO DO
 // comm série avec le Raspberry(exécu-t-on bien les ordres ?)
 // retester antenne RF 24 sur un helloWorld juste pour voir si spec OK
 // 
+// (manoeuvre de dégagement : fait par le raspberry)
+// (manoeuvre de contournement : idem)
  
 /*********************************************
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
@@ -195,7 +193,7 @@ void setup()
 void loop()
 {
   if (OK_init_Tint){
-    //msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
+    msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
   }
   int dist_1 = ultrasonic_1.Ranging(CM);
   //int dist_2 = ultrasonic_2.Ranging(CM);

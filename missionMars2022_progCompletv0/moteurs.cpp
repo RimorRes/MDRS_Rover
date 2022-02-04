@@ -47,8 +47,8 @@ float Moteur::getTensionAlim() const{
 
 float Moteur::actualiseDelayTime(){
   float voltage = getTensionAlim();
-  //voltage = max(voltage, rover_config.tensionCodeMin);  // protège contre mesure aberrante
-  //voltage = min(voltage, rover_config.tensionCodeMax);  // protège contre mesure aberrante
+  voltage = max(voltage, rover_config.tensionCodeMin);  // protège contre mesure aberrante
+  voltage = min(voltage, rover_config.tensionCodeMax);  // protège contre mesure aberrante
 
   //conversion pour trouver (numero magique = ~30)
   float t = 1000 * (30 / voltage);
