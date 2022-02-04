@@ -8,9 +8,11 @@ port= serial.Serial('dev/ttyUSB0', 9600, timeout=1000) # modifiable
 
 def lectureBus():
   dureeAttente = 1000
-  TIMEOUT = 1000
   reception = serialPull()
   if reception == "A": 
     port.write("R")
     time.sleep(dureeAttente)
-    
+    while /*available*/: ;;; pas d'équivalent
+      reception = serialPull()
+      Run(reception)
+   return
