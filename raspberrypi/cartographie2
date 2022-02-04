@@ -1,6 +1,6 @@
 
-from tri import * #Copié-collé, est-ce problème ? (idem pour dessous)
-from graphique import *
+import numpy as np
+import pandas as pd
 import csv
 
 
@@ -9,27 +9,12 @@ import csv
 
 def ecrire(liste): #WAI
   #fonction qui inscrit graphe dans graphe.csv
+  #Convertit la liste en une classe de Panda pour après écrire dans le fichier csv
+  fichier = pd.DataFrame(liste , index = [i for i in range (len(liste))] , columns = [y for y in range (len(liste[0]))] )
+  fichier.to_csv("graphe.csv")
 
-  ouverture = open('cartographie.csv','w',newline='')
-  modif = csv.writer(ouverture)
-  data = transforme_en_str(liste)
-  for ligne in data:
-    modif.writerow(ligne)
-  ouverture.close()
-
-def transforme_en_str(tableau):
-  #tableau : list/int, liste contenant des données sous forme de tableau
-  #Cette fonction transforme la liste en str pour ecrire dans le fichier csv.
-  #data : list/str , contient tableau sous forme de str.
-  data = []
-  for y in tableau:
-    data.append([])
-    for i in tableau[y] :
-      data[y] += str(i[0]) + '/' + str(i[1]) + '/' + str(i[2]) + '/' + str(i[3])+ '/' + str(i[4]) + '/' + str(i[5]) + '/' + str(i[6]) + '/' + str(i[7]) + ';'
-  return data
 
 def transforme_en_liste(tableau):
-  #fait l'inverse d'en dessous
   #tableau : matrice/int 
   #tableau2 : list/int , version "liste" de tableau
 
@@ -37,6 +22,7 @@ def transforme_en_liste(tableau):
   for i in range (len(tableau)):
     for y in range (len(tableau[i])):
       tableau2.append(tableau[i][y])
+  return tableau2
 
 def recuperer(type_): #WAI
   #type_ : str , le nom du fichier csv qu'on veut import.
@@ -45,42 +31,52 @@ def recuperer(type_): #WAI
   #                          pendant le trajet/expédition.
   #liste : list, les données rangés dans une liste (celui de graphe ou carto)
   #Fonction qui recupere les données sous forme d'une liste (pas tableau)
-  #Va retourner liste trié de deux manières (voir trie_liste) 
+  #retourne le fichier sous format d'une liste (pas un "tableau")
   fichier = open(type_,'r')
   liste = []
   for ligne in fichier:
-   liste.append(ligne.rstrip().rsplit(';'))
-  if type_ == "cartographie.csv":
-    for element in range (len(liste)) : 
-      liste[element] = liste[element].rsplit('/')
-      for element2 in range(len(liste[element])):
-        liste[element][element2] = int(liste[element][element2]) 
-  else :
-    for i in range (len(liste)):
-      for element in range (len(liste[i])) : 
-        liste[element] = liste[element].rsplit('/')
-        for element2 in range(len(liste[i][element])):
-          liste[element][element2] = int(liste[element][element2]) 
-    liste = transforme_en_liste(liste)
+    liste.append(ligne.rstrip().rsplit(','))
+  for i in range (len(liste)):
+    for element in range (len(liste[i])) : 
+      liste[i][element] = liste[i][element].rsplit('/')
+      for element2 in range(len(liste[i][element])):
+        liste[i][element][element2] = int(liste[i][element][element2]) 
+  liste = transforme_en_liste(liste)
   fichier.close()
-  liste = trie_liste(liste)
   return liste
 
+def chercher_limite(l) :
+  #permet de trouver les coords des cases avec le plus petit x, plus petit y et inversement.
+  #limites : liste/int, résultat de ^^^
+  limites = []
+  miniX = l[0][0]
+  miniY = l[0][1]
+  maxX = l[0][0]
+  maxY = l[0][1]
 
+  for i in range (1,len(l)) :
+    if l[i][0] < miniX : 
+      miniX = l[i][0]
+    if l[i][0] > maxX : 
+      maxX = l[i][0]
+    if l[i][1] < miniY : 
+      miniY = l[i][1]
+    if l[i][1] > maxY :
+      maxY = l[i][1]
+  
+  limites = [miniX , maxX , miniY , maxY ]
+  return limites 
 
-def trie_liste (liste):#WAI
-  #liste : list/int, cartographie.csv sous une list
-  #liste_range : list/list/int , trie et sauvegarde la liste. 
-  #Fonction qui trie de deux manières : plus petit abscisse=>plus grand abscisse et de meme pour ordonnee
-  liste_range = [tri_fusion(liste,'x') , tri_fusion(liste,'y')]
-  return liste_range
-
-
-def chercher_limite(liste): #WAI
-  #limites : list/int , renvoie le X/Y de la case la plus proche de                       0x/Oy et celle la plus loin de celle-ci.
-  #liste : list/int, cartographie.csv sous une liste trié
-  limites = [ liste[0][0][0] , liste[0][len(liste[0])][0] , liste[1][0][1] , liste[1][len(liste)][1]] #x debut , x fin , y debut , y fin
-  return limites
+def list_vers_str (e) :
+  #convertit une liste en string
+  #e : list/int argument , represente un element de graphe sous une liste 
+  #convert : sting , e convertit en str 
+  convert = ""
+  for i in range (len(e)) :
+    convert = convert + str(e[i])
+    if i!=len(e)-1:
+      convert = convert + "/"
+  return convert
 
 
 def quadrillage(type_): #WAI
@@ -94,12 +90,13 @@ def quadrillage(type_): #WAI
     liste = recuperer(type_)
     limites = chercher_limite(liste)
     graphe = []
-    for y in range (limites[3] - limites[2]):
+
+    for y in range (limites[3] - limites[2]+1):
       graphe.append([])
-      for x in range (limites[1] - limites[0]):
-        graphe[y].append([0,0,0,0,0,0,0,0])
+      for x in range (limites[1] - limites[0]+1):
+        graphe[y].append([-1])
     for element in liste :
-        graphe[element[1] - limites[2]][element[0] - limites[0]] = element
+        graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
 
   else : #graphe est déjà crée alors on fusionne graphe et cartographie #WAI
     liste = recuperer(type_) #Les graphes sont déjà triés
@@ -107,16 +104,25 @@ def quadrillage(type_): #WAI
     liste2 = recuperer('cartographie.csv')
     limites2 = chercher_limite(liste2)
     graphe=[]
-    op1 = limites[3] - limites[2] + (limites2[3] - limites2[2] -limites[3] - limites[2])
-    op2 = limites[1] - limites[0] + (limites2[1] - limites2[0] - limites[1] - limites[0]) #Question d'optimisation pour la boucle qui suit.
-    for i in range(op1):
+    if limites2[0] < limites[0]:
+      limites[0] = limites2[0]
+    if limites2[2] < limites[2] :
+      limites[2] = limites2[2]
+    if limites2[1] > limites[1] :
+      limites[1] = limites2[1]
+    if limites2[3] > limites[3] :
+      limites[3] = limites2[3] #C'est long 
+    op1 =limites[1] - limites[0] + 1
+    op2 =limites[3] - limites[2] + 1
+
+    for y in range(op2):
       graphe.append([])
-      for y in range(op2):
-        graphe[y].append(([0,0,0,0,0,0,0,0]))
+      for x in range(op1):
+        graphe[y].append([-1])
+    for element in liste:
+        graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
     for element in liste2:
-        graphe[element[1] - limites[2]][element[0] - limites[0]] = element
+        graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
   ecrire(graphe)
 
-def affichage():
-  pass
 
