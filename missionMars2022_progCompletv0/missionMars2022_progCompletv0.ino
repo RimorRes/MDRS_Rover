@@ -11,22 +11,22 @@ TO DO
 // 
 // Gestion des moteurs : gérer la direction
 // Gestion des moteurs : savoir quoi allumer pour avancer ou tourner
-// Ecrire la boucle principale
+// Ecrire la boucle principale --> version alpha
 // implémenter le GPS --> fin du setup() et loop()
 // mesure de distance à l'obstacle --> à implémenter dans loop()
 // mesure de température interne --> finir implémenter dans loop()
 // finir impléméntation dictionnaire des instruction (fonction Run() ci-dessous à la fin)
 // 
 // specifications.h : initialiser centreRepere d'après la carte, ou faire avec le GPS : décommenter à la fin du setup()
-// specifications.h : initialiser cheminParDefaut
+// specifications.h : initialiser cheminParDefaut (valeur actuelle = pour jouer)
 // 
 // setup()
 // décider du mode d'attente pour le port série USB : while() ou non ? (voir commentaire dans le code)
 //
 // tests à faire
-// classe Point
-// classe Chemin
-// comm série avec le Raspberry(exécu-t-on bien les ordres ?)
+// classe Point --> OK
+// classe Chemin --> OK
+// comm série avec le Raspberry(exécute-t-on bien les ordres ?) --> pour l'instant, oui sf peut-être transmission succession ordres de marche
 // retester antenne RF 24 sur un helloWorld juste pour voir si spec OK
 // 
 // (manoeuvre de dégagement : fait par le raspberry)
@@ -36,7 +36,7 @@ TO DO
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
 ***********************************************/
 // commenter ce qui suit pour économiser l'espace sur le microcontroleur
-#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules
+//#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules
 
 /*************
 SPECIFICATIONS
@@ -182,9 +182,10 @@ void setup()
   Serial.println("");
 #endif
 
-  Point pointGPS; // à mesurer
+  //Point pointGPS = Point(???, ???); // à mesurer
   // centreRepere = Point(pointGPS);
   cheminSuivi = chemin.getPointDebut().toString();
+  
 }
 
 /*******************************************************************************
@@ -208,30 +209,19 @@ void loop()
   
   float tension = moteur1.getTensionAlim();
   //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
+  // tester si dans la bonne gamme (voir spec) et msg erreur sinon (cf test température ci-dessus)
   
-  // avancer('a', 1, 1000);
-/*  avancerMetres(0.1);
-  tournerSurPlaceDegres(1, 90); //dir: 1 clockwise 2 counterclockwise, angle: angle de rotation en degrés
-  avancerMetres(0.2);
-  tournerSurPlaceDegres(2, 90);
-  avancerMetres(0.1);
-
-  successionOrdresMarche.concat("Av_0.100;");
-  successionOrdresMarche.concat("Tg_90.00;");
-  successionOrdresMarche.concat("Av_0.200;");
-  successionOrdresMarche.concat("Td_90.00;");
-  successionOrdresMarche.concat("Av_0.100;");*/
-/*  
-#ifdef AFFICHAGE
-  Serial.print("récapitulation du chemin suivi : ");
-  Serial.println(successionOrdresMarche);
-  Serial.print("état du rover : ");
-  Serial.println(msg_alerte);
-  Serial.println("");
-#endif
-*/  
-
-  //messageBus = msg_alerte;
+  //chemin.setPointFin(Point(20,-5));
+  Point pointGPS = Point(0, 0); // remplacer par la valeur issu du GPS
+  Point positionCarte = pointGPS.relative(rover_config.centreRepere);
+//  Serial.println(positionCarte.affichage());
+//  Serial.println(chemin.getPointParNumero(1).affichage());
+  chemin.actualiser(positionCarte);
+  //chemin.recalculer();
+  String chaineOrdresMarche = chemin.goToNext();
+//  Serial.println(chaineOrdresMarche);
+  RunChaineOrdres(chaineOrdresMarche);
+  
   if (messageBus != ""){parlerBus();}
   delay(1000);  // Wait 1000ms
 }
@@ -253,8 +243,8 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
   // Une seule instruction lue à la fois. Appeler plusieurs fois au besoin.
     if (INSTRUCTION != ""){
 #ifdef AFFICHAGE
-      Serial.println("instruction dans Run : " + INSTRUCTION);
-      Serial.println("   taille instruction : " + String(INSTRUCTION.length())); 
+      Serial.print("instruction dans Run : "); Serial.println(INSTRUCTION); 
+      Serial.print("   taille instruction : "); Serial.println(String(INSTRUCTION.length())); 
 #endif
       char separator='_'; // caractère de séparation entre fonction et arguments, ou entre arguments
       
@@ -263,8 +253,8 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
       int numFonction = INSTRUCTION.substring(0, posFin).toInt(); // lit le début de l'instruction comme un entier codant la future fonction à exécuter. Du coup, on aurait pu coder avec parseInt().
       String chaineArguments = INSTRUCTION.substring(posFin);
 #ifdef AFFICHAGE
-      Serial.println("   fonction n° : " + String(numFonction));
-      Serial.println("   chaine d'arguments : " + chaineArguments);
+      Serial.print("   fonction n° : "); Serial.println(String(numFonction));
+      Serial.print("   chaine d'arguments : "); Serial.println(chaineArguments);
 #endif
       
       // récupération des arguments
@@ -277,12 +267,13 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
 #endif
       String arguments[numArg]; // le tableau des arguments
       for(i=0;i<numArg;i++){
-        chaineArguments = chaineArguments.substring(1); // on enlève le séparateur
-        posFin = chaineArguments.indexOf(separator);  // on repère la fin de l'argument
-        arguments[i] = chaineArguments.substring(0, posFin); // on extrait l'argument
-        chaineArguments = chaineArguments.substring(posFin); // on enlève ce qui a été lu
+        int posFinArg = chaineArguments.indexOf(separator, 1);  // on repère la fin de l'argument
+        String copie = chaineArguments;
+        arguments[i] = copie.substring(1, posFinArg);
+        String resteArguments = chaineArguments.substring(posFinArg);
+        chaineArguments = resteArguments;
 #ifdef AFFICHAGE
-        Serial.println("   argument : " + arguments[i]);
+        Serial.print("   argument : "); Serial.println(String(arguments[i]));
 #endif
       }
       
@@ -326,29 +317,25 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
         }
         case 5: // requête de transmission des distances à l'obstacle
           ; break;
-// ci-dessous les ordres de marche
-//    deux caractères pour la nature de l'ordre de marche
-//    un underscore
-//    cinq caractères pour le paramètre numérique (à extraire)
-// mais je pourrais assouplir, maintenant ?
         case 11:  // ordre de marche : avancer
           successionOrdresMarche += INSTRUCTION + ";";
-          ;// ???
+          moteur1.avancer2_m(1, arguments[0].toFloat());// si ça recule, changer "1" en "2" pour le premier argument
           break;
         case 12:  // ordre de marche : reculer
           successionOrdresMarche += INSTRUCTION + ";";
-          ; break;
+          moteur1.avancer2_m(2, arguments[0].toFloat());// si ça avance, changer "2" en "1" pour le premier argument
+          break;
         case 13:  // ordre de marche : tourner à droite
           successionOrdresMarche += INSTRUCTION + ";";
-          ; break;
+          // ici le code pour le servomoteur. L'angle en degrés est arguments[0].toFloat()
+          break;
         case 14:  // ordre de marche : tourner à gauche
           successionOrdresMarche += INSTRUCTION + ";";
-          ; break;
+          // ici le code pour le servomoteur. L'angle en degrés est arguments[0].toFloat()
+          break;
 // ce qui suit est à but de test
         case 101:
           Serial.println("Youpi !"); break;
-        case 102:
-          ;//noel(); break;
         case 103:
           if(numArg != 0){serialPush(arguments[0]);} break;
         case 104:
@@ -373,6 +360,24 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
             return; // Panic. Something better to do ?
       } // fin du  : switch(numFonction)
     } // fin du : if (INSTRUCTION != "")
+}
+
+// la même pour le cas où il peut y avoir plusieurs instructions à la chaîne
+void RunChaineOrdres(String INSTRUCTIONS){
+  int numOrdres=1;
+  for (int i=0;i<INSTRUCTIONS.length();i++){ // on compte les arguments
+    if (INSTRUCTIONS[i] == ';'){numOrdres++;}
+  }
+  for (int i=0;i<numOrdres;i++){
+    int posFin = INSTRUCTIONS.indexOf(';');
+    String ordre = INSTRUCTIONS.substring(0,posFin);
+    INSTRUCTIONS = INSTRUCTIONS.substring(posFin+1);
+#ifdef AFFICHAGE
+    Serial.println(INSTRUCTIONS);
+#endif
+    Run(ordre);
+  }
+  return;
 }
 
 

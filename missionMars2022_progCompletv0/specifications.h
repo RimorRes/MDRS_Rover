@@ -44,19 +44,20 @@ class Rover_spec
 class Rover_config
 {
   public:
+    const float Tint_min = 5; // seuil d'alerte bas pour la température interne, en degrés
+    const float Tint_max = 80; // seuil d'alerte haut pour la température interne, en degrés
+
+    const float tensionAlerteMin = 10;  // seuil d'alerte bas, en volts
+    const float tensionAlerteMax = 13;  // seuil d'alerte haut, en volts
+    const float tensionCodeMin = 10;  // le code ne prendra pas en compte des valeurs inférieures (protège contre défaillance mesure)
+    const float tensionCodeMax = 13;  // le code ne prendra pas en compte des valeurs supérieures (protège contre défaillance mesure)
+
     // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cp
     const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1
     const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
     const float pasChemin = 3; // pas pour la génération des points intermédiaires sur le chemin, en mètres 
     const Point centreRepere = Point(0, 0, 0); // à initialiser d'après la carte
     const float directionInitiale = 0; // initialement, le rover pointe à l'Est.
-    const Chemin cheminParDefaut = Chemin(); // à initialiser d'après la carte
-    
-    //const float tensionAlerteMin = 10;  // seuil d'alerte bas, en volts
-    //const float tensionAlerteMax = 13;  // seuil d'alerte haut, en volts
-    //const float tensionCodeMin = 10;  // le code ne prendra pas en compte des valeurs inférieures (protège contre défaillance mesure)
-    //const float tensionCodeMax = 13;  // le code ne prendra pas en compte des valeurs supérieures (protège contre défaillance mesure)
-
-    //const float Tint_min = 5; // seuil d'alerte bas pour la température interne, en degrés
-    //const float Tint_max = 80; // seuil d'alerte haut pour la température interne, en degrés
-};
+    // La déclaration suivante doit être la dernière, sinon ça bugge.
+    const Chemin cheminParDefaut = Chemin(Point(0,0), Point(1,1)); // à initialiser d'après la carte
+ };

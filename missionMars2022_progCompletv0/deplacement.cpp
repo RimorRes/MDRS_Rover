@@ -2,6 +2,7 @@
  * Définition des classes utiles pour gérer la position, la vitesse, ...
 ************************************************************************/
 
+//#define AFFICHAGE // à commenter pour rendre moins bavard...
 #include <Arduino.h>
 #include <Math.h>
 #if !defined SPECIFICATIONS_H
@@ -92,8 +93,14 @@ Point Chemin::getPointDebut() const{return _PointDebut;}
 Point Chemin::getPointFin() const{return _PointFin;}
 Point Chemin::getPointActuel() const{return _PointActuel;}
 
-void Chemin::setPointDebut(Point pointDebut){_PointDebut = pointDebut;}
-void Chemin::setPointFin(Point pointFin){_PointFin = pointFin;}
+void Chemin::setPointDebut(Point pointDebut){
+  _PointDebut = pointDebut;
+  _Points[0] = _PointDebut;
+  }
+void Chemin::setPointFin(Point pointFin){
+  _PointFin = pointFin;
+  _Points[_nombrePoints-1] = _PointFin;
+  }
 void Chemin::setPointActuel(Point pointActuel){_PointActuel = pointActuel;}
 
 int Chemin::getNumeroPointActuel() const{return _numeroPointActuel;}
@@ -120,7 +127,7 @@ Point Chemin::avancerPointSuivant()
 
 Point Chemin::getPointParNumero(int numero) const
 {
-  Point point = _PointActuel;
+  Point point = _PointActuel; // valeur pour défaut pour minimiser l'impact des bugs éventuels, j'espère
   if(numero>=0 && numero<_nombrePoints){
     point = _Points[numero];
   }
@@ -159,24 +166,27 @@ void Chemin::removePoint(int numero){
 }
 
 Chemin Chemin::cheminInverse() const{
-  Chemin chemin;
-  chemin.setPointDebut(getPointActuel());
+  Chemin cheminInv = Chemin(getPointActuel(), getPointDebut());
   int longueur =1;
-  for (int i=_numeroPointActuel; i>=0; i--){
-    chemin.addPoint(longueur, _Points[i]);
+  for (int i=_numeroPointActuel; i>0; i--){
+    cheminInv.addPoint(longueur, _Points[i]);
     longueur++;
   }
-  return chemin;
+  return cheminInv;
 }
 
 // Génère les ordres de marche permettant de rejoindre le point suivant
 String Chemin::goToNext(){
   String listeOrdresDeMarche = "";
   
-  Point pointDepart = getPointParNumero(_numeroPointActuel+1);
-  Point pointArrivee = _PointActuel;
+  Point pointDepart = _PointActuel;
+  Point pointArrivee = getPointParNumero(_numeroPointActuel+1);
   float deltaX = pointArrivee.getX()-pointDepart.getX();
   float deltaY = pointArrivee.getY()-pointDepart.getY();
+#ifdef AFFICHAGE
+  Serial.print("deltaX = "); Serial.println(deltaX);
+  Serial.print("deltaY = "); Serial.println(deltaY);
+#endif
 
   // déterminer la direction cible
   float directionCible; // angle en degré, par rapport à la demi-droite Ox, sens trigonométrique
@@ -189,9 +199,17 @@ String Chemin::goToNext(){
     directionCible = atan(deltaY / deltaX); // en radians
     directionCible *= 180 / 3.141592654;  // en degrés
     if (deltaX < 0) {
-      if (directionCible > 0) {directionCible += 90;} else {directionCible -= 90;}
+      if (directionCible > 0) {directionCible -= 180;} else {directionCible += 180;}
     }  // valeur entre -180 et 180 degrés
   }
+  int dir = (int)directionCible;
+  dir += 180;
+  dir %= 360;
+  dir -= 180;
+  directionCible = dir;
+#ifdef AFFICHAGE
+  Serial.print("direction cible : "); Serial.println(directionCible);
+#endif
   
   // déterminer l'ordre de marche pour la direction
   float angleRotation = directionCible - directionRover;
@@ -208,7 +226,7 @@ String Chemin::goToNext(){
 
   // déterminer l'ordre de marche pour la propulsion
   float distanceCible = distance(pointDepart, pointArrivee);
-  distanceCible = max(distanceCible, 999);  // pour éviter d'avoir plus de 5 caractères au final, avec la virgule et la décimale
+  distanceCible = min(distanceCible, 999);  // pour éviter d'avoir plus de 5 caractères au final, avec la virgule et la décimale
   if (distanceCible > rover_config.tolerancePosition) {
     listeOrdresDeMarche += "11_"; // avancer (cf dico des instructions)
     String texteDistance = String(distanceCible,1); // arrondi au décimètre près

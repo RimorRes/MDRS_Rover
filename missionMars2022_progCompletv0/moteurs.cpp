@@ -109,15 +109,33 @@ void Moteur::avancer_t(char moteur, int sens, float tours){
   //Serial.println("Avancer tours END");
 }
 
+// idem les deux moteurs ensemble
+void Moteur::avancer2_t(int sens, float tours){
+  _delayTime = actualiseDelayTime();
+  float tours_delaytime = _delayTime * tours;
+  activer('A', sens);
+  activer('B', sens);
+  delay(tours_delaytime);
+  desactiver('A');  
+  desactiver('B');  
+}
+
 //fonction pour avancer un nombre <m> de mètres
 void Moteur::avancer_m(char moteur, int sens, float m){
-  Serial.println("Avancer metres START");
+//  Serial.println("Avancer metres START");
   //le diamètre des roues est de 17.5cm donc la circonférence est de 55cm soit 0.55m
   //afin de convertir les mètres en tours, on multiplie les mètres par 1/0.55 soit 1.82
   float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
   float tours = m / perimetre;
   avancer_t(moteur, sens, tours);
-  Serial.println("Avancer metres END");
+//  Serial.println("Avancer metres END");
+}
+
+// idem les deux moteurs ensemble
+void Moteur::avancer2_m(int sens, float m){
+  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float tours = m / perimetre;
+  avancer2_t(sens, tours);  
 }
 
 // A implémenter
