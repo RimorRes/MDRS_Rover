@@ -17,12 +17,11 @@ extern Rover_config rover_config;
   #include "moteurs.h"
   #define MOTEURS_H
 #endif
+extern  Moteur moteurAVD, moteurAVG, moteurARD, moteurARG;
 
-Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_moteur_3, int PIN_moteur_4, int PIN_mesure_tension_alim){
+Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_mesure_tension_alim){
   _PIN_moteur_1 = PIN_moteur_1;
   _PIN_moteur_2 = PIN_moteur_2;
-  _PIN_moteur_3 = PIN_moteur_3;
-  _PIN_moteur_4 = PIN_moteur_4;
   _PIN_mesure_tension_alim = PIN_mesure_tension_alim;
   _delayTime = 1000*30/12;
 }
@@ -30,8 +29,6 @@ Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_moteur_3, int PIN_mot
 boolean Moteur::init_moteur() {
   pinMode(_PIN_moteur_1, OUTPUT);
   pinMode(_PIN_moteur_2, OUTPUT);
-  pinMode(_PIN_moteur_3, OUTPUT);
-  pinMode(_PIN_moteur_4, OUTPUT);
   pinMode(_PIN_mesure_tension_alim, INPUT);
   _delayTime = actualiseDelayTime();
   return true;  // pas encore de test de réussite !
@@ -46,6 +43,111 @@ float Moteur::getTensionAlim() const{
 }
 
 float Moteur::actualiseDelayTime(){
+  _delayTime = getDelayTime();
+  return _delayTime;
+}
+
+//fonction pour activer le moteur dans le sens <sens>
+void Moteur::activer(int sens) const{
+  if (sens == 1){
+    digitalWrite(_PIN_moteur_1, HIGH);
+    digitalWrite(_PIN_moteur_2, LOW);
+  }
+  if (sens == 2){
+    digitalWrite(_PIN_moteur_1, LOW);
+    digitalWrite(_PIN_moteur_2, HIGH);
+  }
+}
+
+//fonction pour desactiver le moteur
+void Moteur::desactiver() const {
+  digitalWrite(_PIN_moteur_1, HIGH);
+  digitalWrite(_PIN_moteur_2, HIGH);
+}
+
+//fonction pour avancer un nombre <t> de tours
+void Moteur::avancer_t(int sens, float tours){
+  //Serial.println("Avancer tours START");
+  _delayTime = actualiseDelayTime();
+  float tours_delaytime = _delayTime * tours;
+  activer(sens);
+  delay(tours_delaytime);
+  desactiver();
+  //Serial.println("Avancer tours END");
+}
+
+//fonction pour avancer un nombre <m> de mètres
+void Moteur::avancer_m(int sens, float m){
+//  Serial.println("Avancer metres START");
+  //le diamètre des roues est de 17.5cm donc la circonférence est de 55cm soit 0.55m
+  //afin de convertir les mètres en tours, on multiplie les mètres par 1/0.55 soit 1.82
+  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float tours = m / perimetre;
+  avancer_t(sens, tours);
+//  Serial.println("Avancer metres END");
+}
+
+// faire avancer tous les moteurs, dans le sens <sens> du nombre de mètres <m>
+void avancerTous(int sens, float m){
+  // on doit paramétrer de sorte que sens = 1 fasse avancer et sens = 2 fasse reculer, à causde de la fonction tournerSurPlace()
+  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float tours = m / perimetre;
+  float delayTime = getDelayTime();
+  float tours_delaytime = delayTime * tours;
+  moteurAVD.activer(sens);
+  moteurAVG.activer(sens);
+  moteurARD.activer(sens);
+  moteurARG.activer(sens);
+  delay(tours_delaytime);
+  moteurAVD.desactiver();
+  moteurAVG.desactiver();
+  moteurARD.desactiver();
+  moteurARG.desactiver();
+  return;
+}
+
+// faire avancer les deux moteurs d'un côté, et reculer les deux autres, dans le sens <sens>, d'un angle <angle> en degrés
+void tournerSurPlace(char sens, int angle){
+  // sens vaut 'D' ou 'G'
+  // si les PINs sont tels que sens = 1 pour un moteur le fasse avancer, et sens = 2 le fasse reculer.
+  float perimetreSurPlace = 3.141592654 * 2 * rover_spec.rayonSurPlaceEnMetres;
+  float m = angle / 360 * perimetreSurPlace;
+  float perimetreRoue = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float tours = m / perimetreRoue;
+  float delayTime = getDelayTime();
+  float tours_delaytime = delayTime * tours;
+  switch (sens){
+    case 'G':
+      moteurAVD.activer(1);
+      moteurARD.activer(1);
+      moteurAVG.activer(2);
+      moteurARG.activer(2);
+    case 'D':
+      moteurAVD.activer(2);
+      moteurARD.activer(2);
+      moteurAVG.activer(1);
+      moteurARG.activer(1);
+    default:
+      ;
+  }
+  delay(tours_delaytime);
+  moteurAVD.desactiver();
+  moteurAVG.desactiver();
+  moteurARD.desactiver();
+  moteurARG.desactiver();
+  return;
+}
+
+float getTensionAlim(){
+  int sensorValue = analogRead(myPINs.PIN_mesure_tension_alim);
+    //analogRead retourne une valeur entre (0 pour 0 volts) et (1023 pour 5 volts)
+  //de plus, la tension reçue a été divisée par 3 donc on la reconvertit
+  float voltage = sensorValue * (5.0 / 1023.0) * 3 * 1.035;  // facteur magique parce que ce n'est pas exactement 3
+  return voltage;
+}
+
+// calcule le temps pour qu'un moteur fasse un tour exactement, selon la tension d'alimentation.
+float getDelayTime() {
   float voltage = getTensionAlim();
   voltage = max(voltage, rover_config.tensionCodeMin);  // protège contre mesure aberrante
   voltage = min(voltage, rover_config.tensionCodeMax);  // protège contre mesure aberrante
@@ -54,88 +156,7 @@ float Moteur::actualiseDelayTime(){
   float t = 1000 * (30 / voltage);
 
   //Serial.println("Delaytime: " + String(t));
-  _delayTime = t;
   return t;
-}
-
-//fonction pour activer le moteur <moteur> dans le sens <sens>
-void Moteur::activer(char moteur, int sens) const{
-
-  if (moteur == 'A'){
-    if (sens == 1){
-      digitalWrite(_PIN_moteur_1, HIGH);
-      digitalWrite(_PIN_moteur_2, LOW);
-    }
-    if (sens == 2){
-      digitalWrite(_PIN_moteur_1, LOW);
-      digitalWrite(_PIN_moteur_2, HIGH);
-      }
-  }
-  if (moteur == 'B'){
-    if (sens == 1){
-      digitalWrite(_PIN_moteur_3, HIGH);
-      digitalWrite(_PIN_moteur_4, LOW);
-    }
-    if (sens == 2){
-      digitalWrite(_PIN_moteur_3, LOW);
-      digitalWrite(_PIN_moteur_4, HIGH);
-      }
-  }
-  
-}
-
-//fonction pour desactiver le moteur <moteur>
-void Moteur::desactiver(char moteur) const {
-
-  if (moteur == 'A'){
-    digitalWrite(_PIN_moteur_1, HIGH);
-    digitalWrite(_PIN_moteur_2, HIGH);
-  }
-  if (moteur == 'B'){
-    digitalWrite(_PIN_moteur_3, HIGH);
-    digitalWrite(_PIN_moteur_4, HIGH);
-  }
-  
-}
-
-//fonction pour avancer un nombre <t> de tours
-void Moteur::avancer_t(char moteur, int sens, float tours){
-  //Serial.println("Avancer tours START");
-  _delayTime = actualiseDelayTime();
-  float tours_delaytime = _delayTime * tours;
-  activer(moteur, sens);
-  delay(tours_delaytime);
-  desactiver(moteur);
-  //Serial.println("Avancer tours END");
-}
-
-// idem les deux moteurs ensemble
-void Moteur::avancer2_t(int sens, float tours){
-  _delayTime = actualiseDelayTime();
-  float tours_delaytime = _delayTime * tours;
-  activer('A', sens);
-  activer('B', sens);
-  delay(tours_delaytime);
-  desactiver('A');  
-  desactiver('B');  
-}
-
-//fonction pour avancer un nombre <m> de mètres
-void Moteur::avancer_m(char moteur, int sens, float m){
-//  Serial.println("Avancer metres START");
-  //le diamètre des roues est de 17.5cm donc la circonférence est de 55cm soit 0.55m
-  //afin de convertir les mètres en tours, on multiplie les mètres par 1/0.55 soit 1.82
-  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
-  float tours = m / perimetre;
-  avancer_t(moteur, sens, tours);
-//  Serial.println("Avancer metres END");
-}
-
-// idem les deux moteurs ensemble
-void Moteur::avancer2_m(int sens, float m){
-  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
-  float tours = m / perimetre;
-  avancer2_t(sens, tours);  
 }
 
 // A implémenter

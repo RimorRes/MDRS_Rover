@@ -9,27 +9,30 @@
 class PIN_spec
 {
   public:
-    const int PIN_moteur1_1 = 4; // moteur 1A sens 2
-    const int PIN_moteur1_2 = 5; // moteur 1A sens 1
-    const int PIN_moteur1_3 = 6; // moteur 1B sens 2
-    const int PIN_moteur1_4 = 7; // moteur 1B sens 1
-    const int PIN_moteur2_1 = 8; // moteur 2A sens 2
-    const int PIN_moteur2_2 = 9; // moteur 2A sens 1
-    const int PIN_moteur2_3 = 10; // moteur 2B sens 2
-    const int PIN_moteur2_4 = 11; // moteur 2B sens 1
+    const int PIN_moteurAVD_1 = 4; // moteur avant droit sens 2
+    const int PIN_moteurAVD_2 = 5; // moteur avant droit sens 1
+    const int PIN_moteurAVG_1 = 6; // moteur avant gauche sens 2
+    const int PIN_moteurAVG_2 = 7; // moteur avant droit sens 1
+    const int PIN_moteurARD_1 = 8; // moteur arrière droit sens 2
+    const int PIN_moteurARD_2 = 9; // moteur arrière droit sens 1
+    const int PIN_moteurARG_1 = 10; // moteur arrière gauche sens 2
+    const int PIN_moteurARG_2 = 11; // moteur arrière gauche sens 1
     const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
 
-    const int PIN_detectObst1_Trig = 12;
-    const int PIN_detectObst1_Echo = 13;
-    const int PIN_detectObst2_Trig = 14;
-    const int PIN_detectObst2_Echo = 15;
+    const int PIN_detectObst1_Trig = 3; // soudé
+    const int PIN_detectObst1_Echo = 2; // soudé
+    //const int PIN_detectObst2_Trig = 14;
+    //const int PIN_detectObst2_Echo = 15;
 
-    const int PIN_RF_CE = 16;
-    const int PIN_RF_CSN = 17;
+    const int PIN_RF_CE = 4; // soudé
+    const int PIN_RF_CSN = 53; // à verifier
     
-    const int PIN_SCL = A5; // inutile, c'est juste pour penser à la réserver. On ne peut pas changer la valeur.
-    const int PIN_SDA = A4; // inutile, c'est juste pour penser à la réserver. On ne peut pas changer la valeur.
-    const int PIN_temp_alert = A3;  //Si on veut utiliser la sortie alert du détecteur de température MP102.
+    const int PIN_SCL = 21; // soudé
+    const int PIN_SDA = 20; // soudé
+    //const int PIN_temp_alert = A3;  //Si on veut utiliser la sortie alert du détecteur de température MP102.
+
+    const int PIN_GPS_TX = 19; // soudé
+    const int PIN_GPS_RX = 18; // soudé
 };
 
 class Rover_spec
@@ -51,6 +54,8 @@ class Rover_config
     const float tensionAlerteMax = 13;  // seuil d'alerte haut, en volts
     const float tensionCodeMin = 10;  // le code ne prendra pas en compte des valeurs inférieures (protège contre défaillance mesure)
     const float tensionCodeMax = 13;  // le code ne prendra pas en compte des valeurs supérieures (protège contre défaillance mesure)
+
+    const float distanceMin = 0.1;  // distance seuil en-deça de laquelle on détecte qu'il y a problème
 
     // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cp
     const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1

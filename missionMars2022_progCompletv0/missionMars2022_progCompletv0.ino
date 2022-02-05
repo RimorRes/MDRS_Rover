@@ -9,34 +9,33 @@ TO DO
 *****/
 // Le codage des classes de spec est pourri : il faudrait passer la valeur des "constantes" lors de l'initialisation. Tant pis.
 // 
-// Gestion des moteurs : gérer la direction
-// Gestion des moteurs : savoir quoi allumer pour avancer ou tourner
-// Ecrire la boucle principale --> version alpha
-// implémenter le GPS --> fin du setup() et loop()
-// mesure de distance à l'obstacle --> à implémenter dans loop()
-// mesure de température interne --> finir implémenter dans loop()
-// finir impléméntation dictionnaire des instruction (fonction Run() ci-dessous à la fin)
+// Gestion des moteurs : gérer la direction (les servo-moteurs qui pivotent entre position droite et position tourner sur place)
+// implémenter le GPS --> fin du setup() et loop() et Run() (code 2)
+// mesure de distance à l'obstacle --> finir implémenter dans loop() si on veut une réaction automatique, comme l'arrêt
+// mesure de température interne --> finir implémenter dans loop() si on veut une réaction automatique, comme l'arrêt
+// finir impléméntation dictionnaire des instruction (fonction Run() ci-dessous à la fin) concernant le code 6 et le code 2
 // 
-// specifications.h : initialiser centreRepere d'après la carte, ou faire avec le GPS : décommenter à la fin du setup()
+// specifications.h : initialiser centreRepere d'après la carte (valeur actuelle = pour jouer)
 // specifications.h : initialiser cheminParDefaut (valeur actuelle = pour jouer)
 // 
 // setup()
 // décider du mode d'attente pour le port série USB : while() ou non ? (voir commentaire dans le code)
+// décider du mode d'initialisation du centre du repère (voir commentaire dans le code)
+//
+// loop()
+// décider du temps d'attente de fin de boucle
 //
 // tests à faire
-// classe Point --> OK
-// classe Chemin --> OK
-// comm série avec le Raspberry(exécute-t-on bien les ordres ?) --> pour l'instant, oui sf peut-être transmission succession ordres de marche
-// retester antenne RF 24 sur un helloWorld juste pour voir si spec OK
-// 
-// (manoeuvre de dégagement : fait par le raspberry)
-// (manoeuvre de contournement : idem)
+// comm série avec le Raspberry(exécute-t-on bien les ordres ?) tester les codes 1, 5, 6, 7
+// en particulier retester antenne RF 24 (code 1) sur un helloWorld juste pour voir si spec OK
+// tests de calibration des moteurs : sens de rotation de chacun, et vitesse rotation (ajuster les spec)
  
 /*********************************************
 PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
 ***********************************************/
 // commenter ce qui suit pour économiser l'espace sur le microcontroleur
-//#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules
+//#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules. Ca rend le code bavard.
+#define TESTS //Pour des fonctions supplémentaires, liées aux tests
 
 /*************
 SPECIFICATIONS
@@ -111,8 +110,10 @@ const byte adresseAntenne[6] = tunnel;               // Mise au format "byte arr
   #include "moteurs.h"  // module codé par nous
   #define MOTEURS_H
 #endif 
-Moteur moteur1(myPINs.PIN_moteur1_1, myPINs.PIN_moteur1_2, myPINs.PIN_moteur1_3, myPINs.PIN_moteur1_4, myPINs.PIN_mesure_tension_alim);
-Moteur moteur2(myPINs.PIN_moteur2_1, myPINs.PIN_moteur2_2, myPINs.PIN_moteur2_3, myPINs.PIN_moteur2_4, myPINs.PIN_mesure_tension_alim);
+Moteur moteurAVD(myPINs.PIN_moteurAVD_1, myPINs.PIN_moteurAVD_2, myPINs.PIN_mesure_tension_alim);
+Moteur moteurAVG(myPINs.PIN_moteurAVG_1, myPINs.PIN_moteurAVG_2, myPINs.PIN_mesure_tension_alim);
+Moteur moteurARD(myPINs.PIN_moteurARD_1, myPINs.PIN_moteurARD_2, myPINs.PIN_mesure_tension_alim);
+Moteur moteurARG(myPINs.PIN_moteurARG_1, myPINs.PIN_moteurARG_2, myPINs.PIN_mesure_tension_alim);
 
 /*******************************************************************************
             GLOBALES
@@ -160,13 +161,21 @@ void setup()
   }
 
   // initialisation des moteurs
-  OK_init_moteurs = moteur1.init_moteur();
+  OK_init_moteurs = moteurAVD.init_moteur();
   if(!OK_init_moteurs){  // impossible avec le code actuel
-    msg_alerte.concat("problème d'initialisation du moteur 1\n");
+    msg_alerte.concat("problème d'initialisation du moteur avant droit\n");
   }
-  OK_init_moteurs = moteur2.init_moteur();
+  OK_init_moteurs = moteurAVG.init_moteur();
   if(!OK_init_moteurs){  // impossible avec le code actuel
-    msg_alerte.concat("problème d'initialisation du moteur 2\n");
+    msg_alerte.concat("problème d'initialisation du moteur avant gauche\n");
+  }
+  OK_init_moteurs = moteurARD.init_moteur();
+  if(!OK_init_moteurs){  // impossible avec le code actuel
+    msg_alerte.concat("problème d'initialisation du moteur arrière droit\n");
+  }
+  OK_init_moteurs = moteurARG.init_moteur();
+  if(!OK_init_moteurs){  // impossible avec le code actuel
+    msg_alerte.concat("problème d'initialisation du moteur arrière gauche\n");
   }
   
   // initialisation de l'antenne RF
@@ -182,7 +191,7 @@ void setup()
   Serial.println("");
 #endif
 
-  //Point pointGPS = Point(???, ???); // à mesurer
+  //Point pointGPS = Point(???, ???); // remplacer par les valeurs issues du GPS, x et y en mètres
   // centreRepere = Point(pointGPS);
   cheminSuivi = chemin.getPointDebut().toString();
   
@@ -193,37 +202,58 @@ void setup()
 ********************************************************************************/
 void loop()
 {
+  // tests
+  // -----
+  
+  // test température
   if (OK_init_Tint){
     msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
   }
+  
+  // test distance obstacle
   int dist_1 = ultrasonic_1.Ranging(CM);
   //int dist_2 = ultrasonic_2.Ranging(CM);
 #ifdef AFFICHAGE
-   Serial.print("distance devant : ");
-   Serial.print(dist_1);
-   Serial.println(" cm");
-/*   Serial.print("distance vers le bas : ");
-   Serial.print(dist_2);
-   Serial.println(" cm");*/
+  Serial.print("distance devant : ");
+  Serial.print(dist_1);
+  Serial.println(" cm");
+/*  Serial.print("distance vers le bas : ");
+  Serial.print(dist_2);
+  Serial.println(" cm");*/
 #endif
+  if(dist_1<rover_config.distanceMin){ // obstacle trop proche
+    messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
+  }
   
-  float tension = moteur1.getTensionAlim();
+  // test tension alimentation
+  float tension = getTensionAlim();
   //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
-  // tester si dans la bonne gamme (voir spec) et msg erreur sinon (cf test température ci-dessus)
+  if (tension<rover_config.tensionCodeMin){
+    msg_alerte += "tension d'alimentation anormalement basse\n";
+  } else if (tension>rover_config.tensionCodeMax){
+    msg_alerte += "tension d'alimentation anormalement haute\n";
+  }
   
+  // intermède communication, si nécessaire
+  if (messageBus != ""){parlerBus();}
+
+  // déplacement
+  // -----------
   //chemin.setPointFin(Point(20,-5));
-  Point pointGPS = Point(0, 0); // remplacer par la valeur issu du GPS
-  Point positionCarte = pointGPS.relative(rover_config.centreRepere);
+  Point pointGPS = Point(0, 0); // remplacer par les valeurs issues du GPS, x et y en mètres
+  Point positionCarte = pointGPS.relative(rover_config.centreRepere); // pour avoir la position relative
 //  Serial.println(positionCarte.affichage());
 //  Serial.println(chemin.getPointParNumero(1).affichage());
-  chemin.actualiser(positionCarte);
-  //chemin.recalculer();
-  String chaineOrdresMarche = chemin.goToNext();
+  chemin.actualiser(positionCarte); // situe la position actuelle par rapport aux positions intermédiaires du chemin
+  //chemin.recalculer();  // à décommenter si on veut un recalcul systématique des points intermédiaires du chemin : plus robuste et plus long
+  String chaineOrdresMarche = chemin.goToNext();  // génère les ordres de marche pour atteindre le point intermédiaire suivant
 //  Serial.println(chaineOrdresMarche);
-  RunChaineOrdres(chaineOrdresMarche);
+  RunChaineOrdres(chaineOrdresMarche);  // exécution des ordres de marche
   
+  // intermède communication, si nécessaire
   if (messageBus != ""){parlerBus();}
-  delay(1000);  // Wait 1000ms
+
+  delay(1000);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 }
 
 /*******************************************************************************
@@ -231,6 +261,8 @@ void loop()
 ********************************************************************************/
 void serialEvent(){ // appeler automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
   lectureBus();
+  // intermède communication, si nécessaire
+  if (messageBus != ""){parlerBus();}
   return;
 }
 
@@ -287,7 +319,9 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
           emettreMessage(arguments[0]);
           break;
         case 2: // requête de transmission de la position actuelle via le bus série
-          messageBus+="2_" + chemin.getPointActuel().toString();  // ";" déjà inclus dans toString()
+          messageBus += "2_" + chemin.getPointActuel().toString();  // ";" déjà inclus dans toString()
+          // remplacer le code ci-dessus par le code ci-dessous dès qu'on aura implémenté le GPS
+          // messageBus += "2_" + String("") + "_" + String("") + ";";  // compléter avec x puis y, en mètres, valeurs décimales avec un point
           break;
         case 3: // requête de transmission du bilan d'activité du rover
           // attention, ça peut être long.
@@ -315,25 +349,45 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
           chemin.recalculer();
           break;
         }
-        case 5: // requête de transmission des distances à l'obstacle
-          ; break;
+        case 5: {// requête de transmission des distances à l'obstacle
+          int dist = ultrasonic_1.Ranging(CM);
+          messageBus += "5_" + String(dist) + ";";
+          break;
+        }  
+        case 6: {// requête de transmission des données des capteurs pour la cartographie
+          String message = "6_";
+          message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
+          message += String("");  // pression, unité ?, décimal avec un point
+          message += String("");  // vitesse vent (norme du vecteur), unité ?, décimal avec un point
+          message += String("");  // angle horizontal direction vent, en degrés ? par rapport à [Ox) sens trigo ?, décimal avec un point
+          messageBus += message + ";";
+          break;
+        }
+        case 7: {// réponse à la requête de transmission de l'orientation du rover
+          directionRover = arguments[0].toInt();  // orientation horizontale du rover, en degrés par rapport à [Ox) sens trigo , valeur entière
+          break;
+        }
         case 11:  // ordre de marche : avancer
           successionOrdresMarche += INSTRUCTION + ";";
-          moteur1.avancer2_m(1, arguments[0].toFloat());// si ça recule, changer "1" en "2" pour le premier argument
+          avancerTous(1, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
           break;
         case 12:  // ordre de marche : reculer
           successionOrdresMarche += INSTRUCTION + ";";
-          moteur1.avancer2_m(2, arguments[0].toFloat());// si ça avance, changer "2" en "1" pour le premier argument
+          avancerTous(2, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
           break;
         case 13:  // ordre de marche : tourner à droite
           successionOrdresMarche += INSTRUCTION + ";";
-          // ici le code pour le servomoteur. L'angle en degrés est arguments[0].toFloat()
+          // ici le code pour le servomoteur. Tourner au max en position "sur place".
+          tournerSurPlace('D', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
+          // ici le code pour le servomoteur. Revenir en position "normale".
           break;
         case 14:  // ordre de marche : tourner à gauche
-          successionOrdresMarche += INSTRUCTION + ";";
-          // ici le code pour le servomoteur. L'angle en degrés est arguments[0].toFloat()
+          // ici le code pour le servomoteur. Tourner au max en position "sur place".
+          tournerSurPlace('G', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
+          // ici le code pour le servomoteur. Revenir en position "normale".
           break;
 // ce qui suit est à but de test
+#ifdef TESTS
         case 101:
           Serial.println("Youpi !"); break;
         case 103:
@@ -353,6 +407,7 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
           emettreMessage(msg_alerte); break;
         case 107:
           emettreMessage("123456789_123456789_123456789_123456789"); break;
+#endif
         default: // Case of unmatched function. 
 #ifdef AFFICHAGE
             Serial.println("Ca serait gentil de me donner des instructions que je comprends !");
