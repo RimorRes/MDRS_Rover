@@ -30,4 +30,6 @@ def parlerBus():
       break
   return
 
-def Run()
+def Run(instruction):
+  if instruction != "": 
+    print("instruction: "+instruction)
