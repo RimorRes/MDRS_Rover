@@ -16,3 +16,18 @@ def lectureBus():
       reception = serialPull()
       Run(reception)
    return
+
+def parlerBus():
+  dureeAttente = 1000
+  nombreEssais = 2
+  for in in range(nombreEssais): 
+    port.write("A")
+    time.sleep(dureeAttente)
+    reception = serialPull()
+    if reception == "R": 
+      port.write(messageBus)
+      messageBus=""
+      break
+  return
+
+def Run()
