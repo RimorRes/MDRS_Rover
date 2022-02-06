@@ -12,7 +12,7 @@ def lectureBus():
   if reception == "A": 
     port.write("R")
     time.sleep(dureeAttente)
-    while /*available*/: ;;; pas d'équivalent
+    while port.readlines():
       reception = serialPull()
       Run(reception)
    return
