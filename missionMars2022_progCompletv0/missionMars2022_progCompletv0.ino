@@ -105,7 +105,7 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig,myPINs.PIN_detectObst1_Echo)
 RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01
 const byte adresseAntenne[6] = tunnel;               // Mise au format "byte array" du nom du tunnel
 
-/* moteurs */
+/* moteurs (propulsion) */
 #if !defined MOTEURS_H
   #include "moteurs.h"  // module codé par nous
   #define MOTEURS_H
@@ -114,6 +114,18 @@ Moteur moteurAVD(myPINs.PIN_moteurAVD_1, myPINs.PIN_moteurAVD_2, myPINs.PIN_mesu
 Moteur moteurAVG(myPINs.PIN_moteurAVG_1, myPINs.PIN_moteurAVG_2, myPINs.PIN_mesure_tension_alim);
 Moteur moteurARD(myPINs.PIN_moteurARD_1, myPINs.PIN_moteurARD_2, myPINs.PIN_mesure_tension_alim);
 Moteur moteurARG(myPINs.PIN_moteurARG_1, myPINs.PIN_moteurARG_2, myPINs.PIN_mesure_tension_alim);
+
+/* servomoteurs (direction) */
+#if !defined SERVO_H
+  #include <Servo.h>
+  #define SERVO_H
+#endif
+Servo servoAVD, servoAVG, servoARD, servoARG; // les servomoteurs
+#if !defined SERVOMOTEURS_H
+  #include "servoMoteurs.h"  // module codé par nous
+  #define SERVOMOTEURS_H
+#endif
+DirectionServo directionServo = DirectionServo(servoAVD, servoAVG, servoARD, servoARG);  // l'objet pour piloter les servomoteurs
 
 /*******************************************************************************
             GLOBALES
@@ -177,6 +189,9 @@ void setup()
   if(!OK_init_moteurs){  // impossible avec le code actuel
     msg_alerte.concat("problème d'initialisation du moteur arrière gauche\n");
   }
+  
+  // initialisation des servomoteurs
+  directionServo.init();
   
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
@@ -369,22 +384,25 @@ void Run(String INSTRUCTION){ // Reads the instruction to call it after.
         }
         case 11:  // ordre de marche : avancer
           successionOrdresMarche += INSTRUCTION + ";";
+          directionServo.positionNormale();
           avancerTous(1, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
           break;
         case 12:  // ordre de marche : reculer
           successionOrdresMarche += INSTRUCTION + ";";
+          directionServo.positionNormale();
           avancerTous(2, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
           break;
         case 13:  // ordre de marche : tourner à droite
           successionOrdresMarche += INSTRUCTION + ";";
-          // ici le code pour le servomoteur. Tourner au max en position "sur place".
+          directionServo.positionSurPlace();
           tournerSurPlace('D', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
-          // ici le code pour le servomoteur. Revenir en position "normale".
+          //directionServo.positionNormale();
           break;
         case 14:  // ordre de marche : tourner à gauche
-          // ici le code pour le servomoteur. Tourner au max en position "sur place".
+          successionOrdresMarche += INSTRUCTION + ";";
+          directionServo.positionSurPlace();
           tournerSurPlace('G', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
-          // ici le code pour le servomoteur. Revenir en position "normale".
+          //directionServo.positionNormale();
           break;
 // ce qui suit est à but de test
 #ifdef TESTS

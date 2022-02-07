@@ -19,6 +19,11 @@ class PIN_spec
     const int PIN_moteurARG_2 = 11; // moteur arrière gauche sens 1
     const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
 
+    const int PIN_servoAVD = 41;  // servomoteur pour la direction, avant droit.
+    const int PIN_servoAVG = 42;  // servomoteur pour la direction, avant gauche.
+    const int PIN_servoARD = 43;  // servomoteur pour la direction, arrière droit.
+    const int PIN_servoARG = 44;  // servomoteur pour la direction, arrière gauche.
+
     const int PIN_detectObst1_Trig = 3; // soudé
     const int PIN_detectObst1_Echo = 2; // soudé
     //const int PIN_detectObst2_Trig = 14;
@@ -42,6 +47,11 @@ class Rover_spec
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
     const float rayonSurPlaceEnMetres = 0.42; // Il s'agit du rayon du cercle quand on tourne sur place.
+    const int angleSurPlace = 50;  // l'angle dont il faut tourner les roues pour qu'elles soient tangentes au cercle circonscrit.
+    const int angleZeroAVD = 90;  // l'angle qui permet au servomoteur AVD de mettre la roue droite, dans l'axe du rover.
+    const int angleZeroAVG = 90;  // l'angle qui permet au servomoteur AVG de mettre la roue droite, dans l'axe du rover.
+    const int angleZeroARD = 90;  // l'angle qui permet au servomoteur ARD de mettre la roue droite, dans l'axe du rover.
+    const int angleZeroARG = 90;  // l'angle qui permet au servomoteur ARG de mettre la roue droite, dans l'axe du rover.
 };
 
 class Rover_config
