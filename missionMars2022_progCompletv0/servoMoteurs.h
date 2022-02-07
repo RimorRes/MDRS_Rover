@@ -20,3 +20,5 @@ class DirectionServo
     Servo _servoARD;
     Servo _servoARG;
 };
+
+void testServo(Servo servo);

@@ -31,6 +31,7 @@ void DirectionServo::init(){
   _servoAVG.attach(myPINs.PIN_servoAVG);
   _servoARD.attach(myPINs.PIN_servoARD);
   _servoARG.attach(myPINs.PIN_servoARG);
+  positionNormale();
 }
 
 // roues avant tournées d'un angle <angle> et arrière tournées de -<angle>, angle en degrés par rapport à l'avant, sens trigo
@@ -63,4 +64,11 @@ void DirectionServo::positionADroite(){
 // les roues avant à gauche, et arrière à droite
 void DirectionServo::positionAGauche(){
   angle(45);
+}
+
+void testServo(Servo servo){
+  servo.write(0); delay(500);
+  servo.write(90); delay(500);
+  servo.write(180); delay(500);
+  return;  
 }
