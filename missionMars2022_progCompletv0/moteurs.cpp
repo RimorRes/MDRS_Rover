@@ -153,82 +153,8 @@ float getDelayTime() {
   voltage = min(voltage, rover_config.tensionCodeMax);  // protège contre mesure aberrante
 
   //conversion pour trouver (numero magique = ~30)
-  float t = 1000 * (30 / voltage);
+  float t = 1000 * (rover_spec.numeroMagique / voltage);
 
   //Serial.println("Delaytime: " + String(t));
   return t;
 }
-
-// A implémenter
-/*void tournerSurPlaceDegres(int dir, float angle, Rover_spec rover_spec, PIN_spec myPINs){
-//dir: 1 clockwise 2 counterclockwise, angle: angle de rotation en degrés
-  float tensionAlimEnV = lireTensionAlimMoteurs();
-  float vitesseMetresParSecondes = 0.248 * (tensionAlimEnV - rover_spec.tensionSeuilAlimMoteurs) * rover_spec.rayonExterneRoueEnMetres;
-
-  float dist = rover_spec.rayonSurPlaceEnMetres * angle / 180 * 3.141592654;
-  int ms = int(dist / vitesseMetresParSecondes * 1000); // durée d'alimentation des moteurs, en ms
-  
-  avancer2(dir, ms, myPINs);
-}*/
-
-// Vieilles fonctions
-/*void avancer2(int dir, int ms, PIN_spec myPINs) {
-  int PIN_moteur1_1 = myPINs.PIN_moteur1_1;
-  int PIN_moteur1_2 = myPINs.PIN_moteur1_2;
-  int PIN_moteur1_3 = myPINs.PIN_moteur1_3;
-  int PIN_moteur1_4 = myPINs.PIN_moteur1_4;
-  
-  if (dir == 1){
-    digitalWrite(PIN_moteur1_1, HIGH);
-    digitalWrite(PIN_moteur1_2, LOW);
-    digitalWrite(PIN_moteur1_3, HIGH);
-    digitalWrite(PIN_moteur1_4, LOW);
-  }
-
-  if (dir ==2){
-    digitalWrite(PIN_moteur1_2, HIGH);
-    digitalWrite(PIN_moteur1_1, LOW);
-    digitalWrite(PIN_moteur1_4, HIGH);
-    digitalWrite(PIN_moteur1_3, LOW);
-  }
-  
-  
-  delay(ms);
-  
-  digitalWrite(PIN_moteur1_1, HIGH);
-  digitalWrite(PIN_moteur1_2, HIGH);
-  digitalWrite(PIN_moteur1_3, HIGH);
-  digitalWrite(PIN_moteur1_4, HIGH);
-}*/
-
-/*
-//motor: 'a'ou 'b', dir: 1 clockwise 2 counterclockwise, ms: temps d'activation en ms
-void avancer(char motor, int dir, int ms, PIN_spec myPINs){
-
-  int ia, ib;
-    
-   if (motor == 'a') {
-    ia = myPINs.PIN_moteur1_1; ib = myPINs.PIN_moteur1_2;
-    
-  }
- 
-  if (motor == 'b') {
-    ia = myPINs.PIN_moteur1_3; ib = myPINs.PIN_moteur1_4;
-  }
-  
-  if (dir == 1){
-    digitalWrite(ia, HIGH);
-    digitalWrite(ib, LOW);
-  }
-
-  if (dir ==2){
-    digitalWrite(ib, HIGH);
-    digitalWrite(ia, LOW);
-  }
-  
-  delay(ms);
-  
-  digitalWrite(ia, HIGH);
-  digitalWrite(ib, HIGH);
-  
-}*/

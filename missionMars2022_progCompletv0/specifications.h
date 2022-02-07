@@ -46,6 +46,7 @@ class Rover_spec
     //void init();
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
+    const float numeroMagique = 30.;  // nombre magique pour déterminer la conversion nombre de tours / temps d'activation pour les moteurs
     const float rayonSurPlaceEnMetres = 0.42; // Il s'agit du rayon du cercle quand on tourne sur place.
     const int angleSurPlace = 50;  // l'angle dont il faut tourner les roues pour qu'elles soient tangentes au cercle circonscrit.
     const int angleZeroAVD = 90;  // l'angle qui permet au servomoteur AVD de mettre la roue droite, dans l'axe du rover.
