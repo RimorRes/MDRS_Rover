@@ -36,17 +36,24 @@ def recuperer(type_): #WAI
   liste = []
   for ligne in fichier:
     liste.append(ligne.rstrip().rsplit(','))
-  for i in range (len(liste)):
-    for element in range (len(liste[i])) : 
-      liste[i][element] = liste[i][element].rsplit('/')
-      for element2 in range(len(liste[i][element])):
-        liste[i][element][element2] = int(liste[i][element][element2]) 
+  liste.pop(0)
+  if type_=="cartographie.csv" :
+    for i in range (len(liste)) :
+      liste[i] = [str(liste[i][0]) ,int(liste[i][1]) , int(liste[i][2]) , int(liste[i][3]) , int(liste[i][4]) ] #Je ne sais pas comment on pourrait "ranger" un fichier csv qui ne contient pas de coordonnées x/y, pourrais je svp avoir une explication ? Merci d'avance.
+
+  if type_ == "graphe.csv" :
+    for i in range (len(liste)):
+      liste[i].pop(0)
+      for element in range (len(liste[i])) : 
+        liste[i][element] = liste[i][element].rsplit('/')
+        for element2 in range(len(liste[i][element])):
+          liste[i][element][element2] = int(liste[i][element][element2]) 
   liste = transforme_en_liste(liste)
   fichier.close()
   return liste
 
 def chercher_limite(l) :
-  #permet de trouver les coords des cases avec le plus petit x, plus petit y et inversement.
+  #permet de trouver les coords des cases avec le plus petit x, plus petit y et inversement. On suppose que 2 premières données d'un élément de graphe/cartographie représente ses coordonnées => à changer si cela change
   #limites : liste/int, résultat de ^^^
   limites = []
   miniX = l[0][0]
@@ -55,14 +62,15 @@ def chercher_limite(l) :
   maxY = l[0][1]
 
   for i in range (1,len(l)) :
-    if l[i][0] < miniX : 
-      miniX = l[i][0]
-    if l[i][0] > maxX : 
-      maxX = l[i][0]
-    if l[i][1] < miniY : 
-      miniY = l[i][1]
-    if l[i][1] > maxY :
-      maxY = l[i][1]
+    if len(l[i]) != 1: #cette condition assure qu'on ne compare pas les cases "vide" (représenté par des -1 dans graphe) 
+     if l[i][0] < miniX : 
+       miniX = l[i][0]
+     if l[i][0] > maxX: 
+       maxX = l[i][0]
+     if l[i][1] < miniY : 
+       miniY = l[i][1]
+     if l[i][1] > maxY :
+       maxY = l[i][1]
   
   limites = [miniX , maxX , miniY , maxY ]
   return limites 
@@ -72,10 +80,11 @@ def list_vers_str (e) :
   #e : list/int argument , represente un element de graphe sous une liste 
   #convert : sting , e convertit en str 
   convert = ""
-  for i in range (len(e)) :
-    convert = convert + str(e[i])
-    if i!=len(e)-1:
-      convert = convert + "/"
+  if e!= -1 :
+    for i in range (len(e)) :
+      convert = convert + str(e[i])
+      if i!=len(e)-1:
+        convert = convert + "/"
   return convert
 
 
@@ -94,7 +103,7 @@ def quadrillage(type_): #WAI
     for y in range (limites[3] - limites[2]+1):
       graphe.append([])
       for x in range (limites[1] - limites[0]+1):
-        graphe[y].append([-1])
+        graphe[y].append(-1)
     for element in liste :
         graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
 
@@ -118,11 +127,12 @@ def quadrillage(type_): #WAI
     for y in range(op2):
       graphe.append([])
       for x in range(op1):
-        graphe[y].append([-1])
+        graphe[y].append(-1)
     for element in liste:
+      #quadrillage("graphe.csv")
+      if len(element)!=1:
         graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
     for element in liste2:
         graphe[element[1] - limites[2]][element[0] - limites[0]] = list_vers_str(element)
   ecrire(graphe)
-
 
