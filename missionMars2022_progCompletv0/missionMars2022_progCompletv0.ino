@@ -276,8 +276,12 @@ void loop()
 #if defined CALIBRATION
   // calibration des moteurs de propulsion
   /* Si un moteur va dans le mauvais sens, aller dans le fichier specifications.h
-   *  dans la classe PIN_spec :
-   *  échanger la valeur de PIN_moteurAVD_1 et PIN_moteurAVD_2 pour le moteur AVD par exemple
+   *    dans la classe PIN_spec :
+   *    échanger la valeur de PIN_moteurAVD_1 et PIN_moteurAVD_2 pour le moteur AVD par exemple
+   * Si ce n'est pas le bon qui tourne : échanger les deux valeurs de PIN. 
+   * Si un seul tourne : commenter les lignes ci-dessous pour n'utiliser qu'un seul moteur à la fois
+   *    jusqu'à trouver à quel moteur dans programme correspond le moteur qui tourne
+   *    puis mettre les bonnes valeurs dans specifications.h
    */
   moteurAVD.activer(1); // moteur avant-droit en avant
   delay(1000);
@@ -293,12 +297,12 @@ void loop()
   moteurARG.desactiver();
   // calibration des servomoteurs de direction
   /* J'ai supposé que l'angle 0 correspondait à tourner à droite, et 180 à gauche. 
-   *  Si c'est dans l'autre sens (sens horaire) alors je dois inverser des choses dans le code : dites-le moi, ce sera rapide.
+   * Si c'est dans l'autre sens (sens horaire) alors je dois inverser des choses dans le code : dites-le moi, ce sera rapide.
    * Si un moteur ne met pas la roue dans l'axe, aller dans le fichier specifications.h
-   *  dans la classe Rover_spec
-   *  changer la valeur de l'angle angleZeroAVD pour le moteur AVD par exemple
-   *  puis réessayer. La position tout droit est mise dès l'initialisation, donc il n'est pas besoin de tout réexécuter entre
-   *  chaque ajustement. Du moment qu'une roue tourne, tout est censé est aligné bien dans l'axe.
+   *    dans la classe Rover_spec
+   *    changer la valeur de l'angle angleZeroAVD pour le moteur AVD par exemple
+   *    puis réessayer. La position tout droit est mise dès l'initialisation, donc il n'est pas besoin de tout réexécuter entre
+   *    chaque ajustement. Du moment qu'une roue tourne, tout est censé est aligné bien dans l'axe.
    */
   testServo(servoAVD);
   directionServo.positionNormale(); delay(500);

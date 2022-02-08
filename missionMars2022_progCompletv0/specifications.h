@@ -9,20 +9,20 @@
 class PIN_spec
 {
   public:
-    const int PIN_moteurAVD_1 = 4; // moteur avant droit sens 2
-    const int PIN_moteurAVD_2 = 5; // moteur avant droit sens 1
-    const int PIN_moteurAVG_1 = 6; // moteur avant gauche sens 2
-    const int PIN_moteurAVG_2 = 7; // moteur avant droit sens 1
-    const int PIN_moteurARD_1 = 8; // moteur arrière droit sens 2
-    const int PIN_moteurARD_2 = 9; // moteur arrière droit sens 1
-    const int PIN_moteurARG_1 = 10; // moteur arrière gauche sens 2
-    const int PIN_moteurARG_2 = 11; // moteur arrière gauche sens 1
+    const int PIN_moteurAVD_1 = 10; // moteur avant droit sens 2 // soudé
+    const int PIN_moteurAVD_2 = 11; // moteur avant droit sens 1 // soudé
+    const int PIN_moteurAVG_1 = 6; // moteur avant gauche sens 2 // soudé
+    const int PIN_moteurAVG_2 = 7; // moteur avant droit sens 1 // soudé
+    const int PIN_moteurARD_1 = 12; // moteur arrière droit sens 2 // soudé
+    const int PIN_moteurARD_2 = 13; // moteur arrière droit sens 1 // soudé
+    const int PIN_moteurARG_1 = 8; // moteur arrière gauche sens 2 // soudé
+    const int PIN_moteurARG_2 = 9; // moteur arrière gauche sens 1 // soudé
     const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
 
-    const int PIN_servoAVD = 41;  // servomoteur pour la direction, avant droit.
-    const int PIN_servoAVG = 42;  // servomoteur pour la direction, avant gauche.
-    const int PIN_servoARD = 43;  // servomoteur pour la direction, arrière droit.
-    const int PIN_servoARG = 44;  // servomoteur pour la direction, arrière gauche.
+    const int PIN_servoAVD = 17;  // servomoteur pour la direction, avant droit. // soudé
+    const int PIN_servoAVG = 23;  // servomoteur pour la direction, avant gauche. // soudé
+    const int PIN_servoARD = 22;  // servomoteur pour la direction, arrière droit. // soudé
+    const int PIN_servoARG = 24;  // servomoteur pour la direction, arrière gauche. // soudé
 
     const int PIN_detectObst1_Trig = 3; // soudé
     const int PIN_detectObst1_Echo = 2; // soudé
