@@ -128,6 +128,14 @@ Servo servoAVD, servoAVG, servoARD, servoARG; // les servomoteurs
 #endif
 DirectionServo directionServo = DirectionServo(servoAVD, servoAVG, servoARD, servoARG);  // l'objet pour piloter les servomoteurs
 
+/* GPS */
+//#include <.h>
+#if !defined GPS_H
+  #include "GPS.h"
+  #define GPS_H
+#endif
+
+
 /*******************************************************************************
             GLOBALES
 ********************************************************************************/
