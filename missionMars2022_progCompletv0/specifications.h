@@ -3,16 +3,11 @@
   #include "deplacement.h"
   #define DEPLACEMENT_H
 #endif 
-#if !defined GPS_H
-  #include "GPS.h"
-  #define GPS_H
-#endif
-
-// OK, ce qui suit est assez moche comme code. Ca fait le job. On pourra améliorer ensuite.
 
 class PIN_spec
 {
   public:
+    // PIN_spec();
     const int PIN_moteurAVD_1 = 10; // moteur avant droit sens 2 // soudé
     const int PIN_moteurAVD_2 = 11; // moteur avant droit sens 1 // soudé
     const int PIN_moteurAVG_1 = 6; // moteur avant gauche sens 2 // soudé
@@ -47,7 +42,7 @@ class PIN_spec
 class Rover_spec
 {
   public:
-    //void init();
+    //Rover_spec();
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
     const float numeroMagique = 30.;  // nombre magique pour déterminer la conversion nombre de tours / temps d'activation pour les moteurs
@@ -62,6 +57,7 @@ class Rover_spec
 class Rover_config
 {
   public:
+    Rover_config();
     const float Tint_min = 5; // seuil d'alerte bas pour la température interne, en degrés
     const float Tint_max = 80; // seuil d'alerte haut pour la température interne, en degrés
 
@@ -77,11 +73,11 @@ class Rover_config
     const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
     const float pasChemin = 3; // pas pour la génération des points intermédiaires sur le chemin, en mètres 
     const float directionInitiale = 0; // initialement, le rover pointe à l'Est.
-    const Point limiteSO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05)); // 38°24'22.90"N, 110°47'23.05"O
-    const Point limiteNO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.11), -convertDegMinSecToDecimal(110, 47, 23.74)); // 38°24'42.11"N, 110°47'23.74"O
-    const Point limiteNE = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.55), -convertDegMinSecToDecimal(110, 47, 5.81)); // 38°24'42.55"N, 110°47'5.81"O
-    const Point centreRepere = limiteSO; // à initialiser d'après la carte
+    Point limiteSO; // valeur : voir dans le fichier .cpp
+    Point limiteNO; // valeur : voir dans le fichier .cpp
+    Point limiteNE; // valeur : voir dans le fichier .cpp
+    Point centreRepere; // valeur : voir dans le fichier .cpp
 
      // La déclaration suivante doit être la dernière, sinon ça bugge.
-    const Chemin cheminParDefaut = Chemin(limiteSO, limiteNE); // diagonale à travers la zone de jeu.
+    Chemin cheminParDefaut; // valeur : voir dans le fichier .cpp
 };
