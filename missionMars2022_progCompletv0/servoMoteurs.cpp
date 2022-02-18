@@ -2,6 +2,19 @@
  * Gestion des servomoteurs
 ***************************/
 
+/*
+ * Pour la rotation des servos, comme ça prend un peu de temps, il serait préférable
+ * d'intégrer cette durée dans le code, par exemple en faisant une rotation plus lente
+ * par exemple 15 ms par degré (voir doc du module).
+ * 
+ * garder en mémoire la position actuelle du servo (déjà dans le module Servo.h ?) si 
+ * on veut faire de la rotation progressive.
+ * 
+ * position zéro : à caler à la main
+ * 
+ * faire tourne la roue en même temps ? pour éviter d'user les pneus ?
+ */
+
 #include <Arduino.h>
 #if !defined SPECIFICATIONS_H
   #include "specifications.h"

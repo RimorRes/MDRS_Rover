@@ -31,7 +31,7 @@ Point convertSphereToPlan(float lat, float lon, Point origine){
   return Point(x, y);
 }
 Point convertSphereToPlan(float lat, float lon){
-  return convertSphereToPlan(lat, lon, Point(0, 0, 0));
+  return convertSphereToPlan(lat, lon, rover_config.getCentreRepere());
 }
 
 // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
@@ -40,3 +40,13 @@ float convertDegMinSecToDecimal(float deg, float minutes, float sec){
   deg += minutes / 60;
   return deg;
 }
+
+/*// retourne la position GPS en mètre, position absolue (par rapport à l'intersection Greenwich/équateur
+Point pointGPS_absolu(){
+  return convertSphereToPlan(gps.latitude, gps.longitude, Point(O,O,O));
+}
+
+// retourne la position GPS en mètre, par rapport au centre de la carte
+Point pointGPS_carte(){
+  return convertSphereToPlan(gps.latitude, gps.longitude, getCentreRepere());
+}*/

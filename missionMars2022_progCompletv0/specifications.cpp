@@ -13,11 +13,21 @@
 #endif 
 
 Rover_config::Rover_config(){
-    limiteSO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05)); // 38°24'22.90"N, 110°47'23.05"O
-    limiteNO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.11), -convertDegMinSecToDecimal(110, 47, 23.74)); // 38°24'42.11"N, 110°47'23.74"O
-    limiteNE = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.55), -convertDegMinSecToDecimal(110, 47, 5.81)); // 38°24'42.55"N, 110°47'5.81"O
-    centreRepere = limiteSO; // à initialiser d'après la carte
+  setCentreRepere(_limiteSO); // à initialiser d'après la carte
+  actualiserLimites();
+  cheminParDefaut = Chemin(_limiteSO, _limiteNE); // diagonale à travers la zone de jeu.
+  cheminParDefaut.addPoint(_limiteSO);  // retour à la case départ.
+}
 
-     // La déclaration suivante doit être la dernière, sinon ça bugge.
-    cheminParDefaut = Chemin(limiteSO, limiteNE); // diagonale à travers la zone de jeu.
-};
+void Rover_config::setCentreRepere(Point point){_centreRepere = point; return;}
+Point Rover_config::getCentreRepere() const {return _centreRepere;}
+
+void Rover_config::actualiserLimites(){
+    _limiteSO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05)); // 38°24'22.90"N, 110°47'23.05"O
+    _limiteNO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.11), -convertDegMinSecToDecimal(110, 47, 23.74)); // 38°24'42.11"N, 110°47'23.74"O
+    _limiteNE = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.55), -convertDegMinSecToDecimal(110, 47, 5.81)); // 38°24'42.55"N, 110°47'5.81"O
+    return;
+}
+Point Rover_config::getLimiteSO() const {return _limiteSO;}
+Point Rover_config::getLimiteNO() const {return _limiteNO;}
+Point Rover_config::getLimiteNE() const {return _limiteNE;}

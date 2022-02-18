@@ -18,7 +18,6 @@ extern Rover_config rover_config;
 extern Chemin chemin;
 extern float directionRover;
 extern boolean goingHome;
-extern String successionOrdresMarche;
 extern String cheminSuivi;
 
 /**************
@@ -87,6 +86,8 @@ Chemin::Chemin(Point pointDebut, Point pointFin)
   _Points[0] = _PointDebut;
   _Points[1] = _PointFin;
   _nombrePoints = 2;
+  _PointActuel = pointDebut;
+  _numeroPointActuel = 0;
 }
 
 Point Chemin::getPointDebut() const{return _PointDebut;}
@@ -135,7 +136,7 @@ Point Chemin::getPointParNumero(int numero) const
 }
 
 void Chemin::addPoint(int numero, Point point){
-  if (numero>0 && numero<=_nombrePoints){ // On ne peut changer le point initial...
+  if (numero>_numeroPointActuel && numero<=_nombrePoints){ // On ne peut changer les points déjà parcourus...
     if (numero<_nombrePoints){  // Le point se rajoute au milieu...
       for (int i=_nombrePoints;i>numero;i--){ // On décale tout ce qui suit.
         _Points[i]=_Points[i-1];
@@ -149,8 +150,13 @@ void Chemin::addPoint(int numero, Point point){
   return;
 }
 
+void Chemin::addPoint(Point point){// l'ajout du point se fait à la fin
+  addPoint(_nombrePoints, point);
+  return;
+}
+
 void Chemin::removePoint(int numero){
-  if (numero>0 && numero<_nombrePoints){  // On ne peut changer le point initial...
+  if (numero>_numeroPointActuel && numero<_nombrePoints){  // On ne peut changer les points déjà parcourus...
     if (numero<_nombrePoints-1){  // Le point est enlevé au milieu...
       for (int i=numero;i<_nombrePoints-1;i++){ // On décale tout ce qui suit.
         _Points[i]=_Points[i+1];

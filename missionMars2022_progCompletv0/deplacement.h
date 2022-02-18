@@ -42,6 +42,7 @@ class Chemin  // utilise la classe Point
     Point avancerPointSuivant(); // le point actuel passe au point suivant 
     Point getPointParNumero(int numero) const;
     void addPoint(int numero, Point point);
+    void addPoint(Point point); // l'ajout du point se fait à la fin
     void removePoint(int numero);
     Chemin cheminInverse() const; // renvoie le chemin inverse, ne modifie rien
     String goToNext();  // Génère les ordres de marche permettant de rejoindre le point suivant
