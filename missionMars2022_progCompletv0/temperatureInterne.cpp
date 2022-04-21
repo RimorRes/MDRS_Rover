@@ -79,6 +79,14 @@ float read_temperature(TMP102 sensor0){
 String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
   String phrase_alerte ="";
   float temperature_int = read_temperature(sensor0); // température interne
+  
+  return "coucou";//phrase_alerte;
+}
+
+/*
+String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
+  String phrase_alerte ="";
+  float temperature_int = read_temperature(sensor0); // température interne
   // boolean alertPinState, alertRegisterState; // si on veut utiliser la sortie alert du TMP102
 
   // Print temperature and alarm state
@@ -93,5 +101,5 @@ String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
     phrase_alerte.concat("température interne trop haute\n");
   }
   
-  return phrase_alerte;
-}
+  return "coucou";//phrase_alerte;
+}*/

@@ -7,7 +7,6 @@
 /****
   TO DO
 *****/
-// Gestion des moteurs : gérer la direction (les servo-moteurs qui pivotent entre position droite et position tourner sur place)
 // implémenter le GPS --> fin du setup() et loop() et Run() (code 2)
 // mesure de distance à l'obstacle --> finir implémenter dans loop() si on veut une réaction automatique, comme l'arrêt
 // mesure de température interne --> finir implémenter dans loop() si on veut une réaction automatique, comme l'arrêt
@@ -24,20 +23,27 @@
 // tests à faire
 // comm série avec le Raspberry(exécute-t-on bien les ordres ?) tester les codes 1, 5, 6, 7
 // en particulier retester antenne RF 24 (code 1) sur un helloWorld juste pour voir si spec OK
-// tests de calibration des moteurs : sens de rotation de chacun, et vitesse rotation (ajuster les spec)
+// tests de calibration des moteurs : vitesse rotation (ajuster les spec)
+//
+// gros problème sur la température interne à gérer. la lecture de température fait bugger.
+//
+// corriger les paramètres, car la rotation est mal calibrée.
+// implémenter la lecture de tension de la batterie.
 
 /*********************************************
   PARAMETRAGE DU COMPORTEMENT AVEC L'UTILISATEUR
 ***********************************************/
 // commenter ce qui suit pour économiser l'espace sur le microcontroleur
-//#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules. Ca rend le code bavard.
+#define AFFICHAGE   // Pour indiquer qu'il y aura une sortie sur la console série, idem dans les modules. Ca rend le code bavard.
 //#define TESTS //Pour des fonctions supplémentaires, liées aux tests
-#define CALIBRATION // Comportement limité à l'exécution d'une série prédéterminée
+//#define CALIBRATION // Comportement limité à l'exécution d'une série prédéterminée
+//#define TEST_ALLEGE_MOTEURS_ET_SERVO
+#define TEST_GPS
 
 /*************
   SPECIFICATIONS
 **************/
-// Pour passer en paramètre des fonctions
+// Pour passer des paramètres de config aux fonctions
 #if !defined SPECIFICATIONS_H
 #include "specifications.h"  // module codé par nous
 #define SPECIFICATIONS_H
@@ -70,6 +76,7 @@ Rover_config rover_config;  // configuration du rover (paramètres du code)
   L'adresse 7 bits du BMP180 est Ox77.
 */
 
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 1
 /***************
   MODULES EXTERNES
 ****************/
@@ -105,6 +112,8 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo
 RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01
 const byte adresseAntenne[6] = tunnel;              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
 
+//#endif // #if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 1
+
 /* moteurs (propulsion) */
 #if !defined MOTEURS_H
 #include "moteurs.h"  // module codé par nous
@@ -127,12 +136,19 @@ Servo servoAVD, servoAVG, servoARD, servoARG; // les servomoteurs
 #endif
 DirectionServo directionServo = DirectionServo(servoAVD, servoAVG, servoARD, servoARG);  // l'objet pour piloter les servomoteurs
 
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 2
 /* GPS */
-//#include <.h>  // module Adafruit
+#if !defined ADAFRUIT_GPS_H
+#include <Adafruit_GPS.h> // module Adafruit
+#define ADAFRUIT_GPS_H
+#endif
 #if !defined GPS_H
 #include "GPS.h"  // module codé par nous
 #define GPS_H
 #endif
+HardwareSerial GPSSerial = Serial1;
+Adafruit_GPS GPS(&GPSSerial);
+#define GPSECHO false // pour que tout soit renvoyé vers la comm série <--------------------------------------------------- à virer
 
 
 /*******************************************************************************
@@ -146,6 +162,7 @@ DirectionServo directionServo = DirectionServo(servoAVD, servoAVG, servoARD, ser
 float directionRover = rover_config.directionInitiale; // déclarer extern en tête de déplacement.cpp
 Chemin chemin = rover_config.cheminParDefaut;  // déclarer extern en tête de déplacement.cpp
 Point positionGPS = rover_config.cheminParDefaut.getPointActuel(); // pour stocker la dernière position GPS
+//#endif  // #if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 2
 
 /* indicateurs d'état */
 boolean OK_init_Tint, OK_Tint;  // initialisation capteur température interne, état température interne
@@ -161,19 +178,26 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 /* mémoire tampon comm série USB */
 String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
+/* mémoire tampon pour le point GPS */
+const int nombrePointsMoyenneGPS = 10;  // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
+float latitudeBuffer[nombrePointsMoyenneGPS];
+float longitudeBuffer[nombrePointsMoyenneGPS];
+
 /*******************************************************************************
             SETUP()
 ********************************************************************************/
 void setup()
 {
   // initialisation de la comm série USB (pour le raspberry)
-  Serial.begin(9600);
-  while (!Serial) {
+  Serial.begin(9600); // pour afficher correctement le GPS, il faudrait 115200 ? A voir <---------------------------------------
+  delay(1000);
+  Serial.println("coucou, setup()");
+/*  while (!Serial) {
     ; // On attend que le port série soit disponible
   }
   // la ligne précédente est-elle à enlever lorsque ce ne sera plus le moniteur série ?
   // On risque de paralyser le rover si la comm série ne fonctionne pas : remplacer par un temps d'attente comme 2000 ms par exemple ?
-  delay(1000);
+*/
   Wire.begin(); //Join I2C Bus
 
   // initialisation du capteur de température interne
@@ -181,6 +205,9 @@ void setup()
   if (!OK_init_Tint) {
     msg_alerte.concat("problème d'initialisation du capteur de température interne (tmp102)\n");
   }
+#ifdef AFFICHAGE
+  Serial.println("fin de l'initialisation du thermomètre");
+#endif
 
   // initialisation des moteurs
   OK_init_moteurs = moteurAVD.init_moteur();
@@ -199,24 +226,60 @@ void setup()
   if (!OK_init_moteurs) { // impossible avec le code actuel
     msg_alerte.concat("problème d'initialisation du moteur arrière gauche\n");
   }
+/*#if defined TEST_ALLEGE_MOTEURS_ET_SERVO
+  // initialisation des moteurs
+  moteurAVD.init_moteur();
+  moteurAVG.init_moteur();
+  moteurARD.init_moteur();
+  moteurARG.init_moteur();
+#endif*/
+#ifdef AFFICHAGE
+  Serial.println("fin de l'initialisation des moteurs");
+#endif
 
   // initialisation des servomoteurs
   directionServo.init();
-  directionServo.positionNormale();
-
+  directionServo.positionNormale(); delay(500);
+  //directionServo.positionSurPlace(); delay(500);
+  //directionServo.positionNormale(); delay(500);
+#ifdef AFFICHAGE
+  Serial.println("fin de l'initialisation des servomoteurs");
+#endif
+  
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
   radio.openWritingPipe(adresseAntenne);     // Ouverture du tunnel en ÉCRITURE, avec le "nom" qu'on lui a donné
   radio.setPALevel(RF24_PA_MIN);      // Sélection d'un niveau "MINIMAL" pour communiquer (pas besoin d'une forte puissance, pour nos essais)
   radio.stopListening();              // Arrêt de l'écoute du NRF24 (signifiant qu'on va émettre, et non recevoir, ici)
-
-
 #ifdef AFFICHAGE
-  Serial.print("état du rover à l'initialisation : ");
-  Serial.println(msg_alerte);
-  Serial.println("");
+  Serial.println("fin de l'initialisation de l'antenne RF");
 #endif
 
+  // initialisation du GPS
+  GPS.begin(9600);  // 4800 serait aussi possible
+Serial.println("begin");
+    // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+    //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    // uncomment this line to turn on only the "minimum recommended" data
+    GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+Serial.println("RMC only");
+    //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+//Serial.println("1Hz");
+    // For the parsing code to work nicely and have time to sort thru the data, and
+    // print it out we don't suggest using anything higher than 1 Hz
+
+    // Request updates on antenna status, comment out to keep quiet
+//  GPS.sendCommand(PGCMD_ANTENNA);
+//Serial.println("antenna status");
+
+  delay(1000);
+  // Ask for firmware version
+  GPSSerial.println(PMTK_Q_RELEASE);
+#ifdef AFFICHAGE
+  Serial.println("fin de l'initialisation du GPS");
+#endif
+
+  // chemins
   /*  setCentreRepere(convertSphereToPlan(gps.latitude, gps.longitude, Point(0,0,0))); // remplacer par les valeurs issues du GPS, x et y en mètres
     positionGPS = pointGPS(); // Ca vaut (0,0,0) si tout va bien.
     Serial.print("position GPS actuelle, par rapport à la carte : "); Serial.println(positionGPS.affichage());
@@ -240,20 +303,34 @@ void setup()
     Serial.println("fin du test sur les chemins");
     Serial.println("");
   */
+
+#ifdef AFFICHAGE
+  Serial.print("état du rover à l'initialisation : ");
+  Serial.println(msg_alerte);
+  Serial.println("");
+#endif
 }
 
 /*******************************************************************************
             LOOP()
 ********************************************************************************/
+
+#if defined TEST_GPS
+  uint32_t timer = millis();
+#endif
+
 void loop()
 {
-  // tests
+#if !defined TEST_GPS
+// tests
   // -----
 
   // test température
-  if (OK_init_Tint) {
-    msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
-  }
+if (OK_init_Tint) {
+//    msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
+    //msg_alerte += test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max);
+    ;
+}
 
   // test distance obstacle
   int dist_1 = ultrasonic_1.Ranging(CM);
@@ -286,6 +363,12 @@ void loop()
   }
 #endif
 
+#ifdef AFFICHAGE
+  Serial.println("Voici le message d'alerte : ");
+  Serial.println(msg_alerte);
+  Serial.println("fin du message");Serial.println(" ");
+#endif
+
 #if !defined CALIBRATION
   // déplacement
   // -----------
@@ -303,57 +386,95 @@ void loop()
   if (messageBus != "") {
     parlerBus();
   }
-#endif
+#endif  // CALIBRATION
 
 #if defined CALIBRATION
-  // calibration des moteurs de propulsion
-  /* Si un moteur va dans le mauvais sens, aller dans le fichier specifications.h
-        dans la classe PIN_spec :
-        échanger la valeur de PIN_moteurAVD_1 et PIN_moteurAVD_2 pour le moteur AVD par exemple
-     Si ce n'est pas le bon qui tourne : échanger les deux valeurs de PIN.
-     Si un seul tourne : commenter les lignes ci-dessous pour n'utiliser qu'un seul moteur à la fois
-        jusqu'à trouver à quel moteur dans programme correspond le moteur qui tourne
-        puis mettre les bonnes valeurs dans specifications.h
-  */
-/*  moteurAVD.activer(1); // moteur avant-droit en avant
-  delay(1000);
-  moteurAVD.desactiver();
-  moteurAVG.activer(1); // moteur avant-gauche en avant
-  delay(1000);
-  moteurAVG.desactiver();
-  moteurARD.activer(1); // moteur arrière-droit en avant
-  delay(1000);
-  moteurARD.desactiver();
-  moteurARG.activer(1); // moteur arrière-gauche en avant
-  delay(1000);
-  moteurARG.desactiver();
-  // calibration des servomoteurs de direction
-  /* J'ai supposé que l'angle 0 correspondait à tourner à droite, et 180 à gauche.
-     Si c'est dans l'autre sens (sens horaire) alors je dois inverser des choses dans le code : dites-le moi, ce sera rapide.
-     Si un moteur ne met pas la roue dans l'axe, aller dans le fichier specifications.h
-        dans la classe Rover_spec
-        changer la valeur de l'angle angleZeroAVD pour le moteur AVD par exemple
-        puis réessayer. La position tout droit est mise dès l'initialisation, donc il n'est pas besoin de tout réexécuter entre
-        chaque ajustement. Du moment qu'une roue tourne, tout est censé est aligné bien dans l'axe.
-  */
-  /*testServo(servoAVD);
-  directionServo.positionNormale(); delay(500);
-  testServo(servoAVG);
-  directionServo.positionNormale(); delay(500);
-  testServo(servoARD);
-  directionServo.positionNormale(); delay(500);
-  testServo(servoARG);
-  directionServo.positionNormale(); delay(500);
-  directionServo.positionSurPlace(); delay(1000);*/
-  avancerTous(1, 1.);
-#endif
+//  calibration des moteurs de propulsion
+//  moteurAVD.activer(1); delay(1000); moteurAVD.desactiver();
+//  moteurAVG.activer(1); delay(1000); moteurAVG.desactiver();
+//  moteurARD.activer(1); delay(1000); moteurARD.desactiver();
+//  moteurARG.activer(1); delay(1000); moteurARG.desactiver();
 
-  delay(1000);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
+// calibration des servomoteurs de direction
+//  testServo(servoAVD); directionServo.positionNormale(); delay(500);
+//  testServo(servoAVG); directionServo.positionNormale(); delay(500);
+//  testServo(servoARD); directionServo.positionNormale(); delay(500);
+//  testServo(servoARG); directionServo.positionNormale(); delay(500);
+//  directionServo.positionSurPlace();  delay(2000); directionServo.positionNormale(); delay(500);
+
+//  avancerTous(1, 1.);
+//  directionServo.positionSurPlace();delay(500);tournerSurPlace('D', 90);delay(500);directionServo.positionNormale();
+/*  for (int i=0;i=3;i++){
+    String chaineOrdresMarche = "13_90;11_1";  // génère les ordres de marche pour atteindre le point intermédiaire suivant
+    RunChaineOrdres(chaineOrdresMarche);  // exécution des ordres de marche
+  }*/
+#endif  // CALIBRATION
+#endif // TEST_GPS
+
+#if defined TEST_GPS
+// gérer la varaible timer, pour l'instant elle est avant loop()
+  char c = GPS.read();
+  // if you want to debug, this is a good time to do it!
+//  if ((c) && (GPSECHO))
+//    Serial.write(c);
+  if (GPSECHO)
+    if (c) Serial.print(c);
+  // if a sentence is received, we can check the checksum, parse it...
+  if (GPS.newNMEAreceived()) {
+    // a tricky thing here is if we print the NMEA sentence, or data
+    // we end up not listening and catching other sentences!
+    // so be very wary if using OUTPUT_ALLDATA and trytng to print out data
+    Serial.println(GPS.lastNMEA());   // this also sets the newNMEAreceived() flag to false
+    if (!GPS.parse(GPS.lastNMEA()))   // this also sets the newNMEAreceived() flag to false
+      return;  // we can fail to parse a sentence in which case we should just wait for another
+  }// else {Serial.println("Rien de reçu");}
+
+  // approximately every 2 seconds or so, print out the current stats
+  if (millis() - timer > 2000) {
+    timer = millis(); // reset the timer
+
+    Serial.print("\nTime: ");
+    if (GPS.hour < 10) { Serial.print('0'); }
+    Serial.print(GPS.hour, DEC); Serial.print(':');
+    if (GPS.minute < 10) { Serial.print('0'); }
+    Serial.print(GPS.minute, DEC); Serial.print(':');
+    if (GPS.seconds < 10) { Serial.print('0'); }
+    Serial.print(GPS.seconds, DEC); Serial.print('.');
+    if (GPS.milliseconds < 10) {
+      Serial.print("00");
+    } else if (GPS.milliseconds > 9 && GPS.milliseconds < 100) {
+      Serial.print("0");
+    }
+    Serial.println(GPS.milliseconds);
+    Serial.print("Date: ");
+    Serial.print(GPS.day, DEC); Serial.print('/');
+    Serial.print(GPS.month, DEC); Serial.print("/20");
+    Serial.println(GPS.year, DEC);
+    Serial.print("Fix: "); Serial.print((int)GPS.fix);
+    Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
+    if (GPS.fix) {
+      Serial.print("Location: ");
+      Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+      Serial.print(", ");
+      Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+
+      Serial.print("Speed (knots): "); Serial.println(GPS.speed);
+      Serial.print("Angle: "); Serial.println(GPS.angle);
+      Serial.print("Altitude: "); Serial.println(GPS.altitude);
+      Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
+    }
+  }
+#endif  // TEST_GPS
+  //directionServo.positionSurPlace();delay(500);tournerSurPlace('D', 0);delay(500);directionServo.positionNormale();
+  //avancerTous(1, 1.);
+
+  delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 }
 
 /*******************************************************************************
             FONCTIONS UTILES
 ********************************************************************************/
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 6
 void serialEvent() { // appeler automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
   lectureBus();
   // intermède communication, si nécessaire
@@ -362,10 +483,12 @@ void serialEvent() { // appeler automatiquement par Arduino en fin de loop() s'i
   }
   return;
 }
+//#endif  //#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 6
 
 /**************************
   LA FONCTION D'EXECUTION CLE
 ***************************/
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 7
 
 // déclarer en tête de serialComm.cpp
 void Run(String INSTRUCTION) { // Reads the instruction to call it after.
@@ -409,6 +532,7 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
     }
 
     switch (numFonction) { // cf dico des instructions
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 8
       case 0: // code d'urgence
         goHome();  // retour base
         messageBus = "0"; // on annonce qu'on revient
@@ -455,8 +579,8 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
         }
       case 6: {// requête de transmission des données des capteurs pour la cartographie
           String message = "6_";
-          message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
-          message += String("");  // pression, unité ?, décimal avec un point
+message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
+message += String("");  // pression, unité ?, décimal avec un point
           message += String("");  // vitesse vent (norme du vecteur), unité ?, décimal avec un point
           message += String("");  // angle horizontal direction vent, en degrés ? par rapport à [Ox) sens trigo ?, décimal avec un point
           messageBus += message + ";";
@@ -466,6 +590,7 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
           directionRover = arguments[0].toInt();  // orientation horizontale du rover, en degrés par rapport à [Ox) sens trigo , valeur entière
           break;
         }
+//#endif  //#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 8
       case 11:  // ordre de marche : avancer
         successionOrdresMarche += INSTRUCTION + ";";
         directionServo.positionNormale();
@@ -546,12 +671,13 @@ void RunChaineOrdres(String INSTRUCTIONS) {
   }
   return;
 }
-
+//#endif  //#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 7
 
 /*************************
   GROS BAZAR DE FONCTIONS...
 **************************/
 
+//#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 9
 boolean emettreMessage(String message) {
   int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
   int nbrPhrases = int(message.length() / nbrCaracteresMax) + 1;
@@ -570,3 +696,4 @@ boolean emettreMessage(String message) {
     //Serial.write(msg, sizeof(msg));
   }
 }
+//#endif  //#if !defined TEST_ALLEGE_MOTEURS_ET_SERVO //      <--------------------------------------------------------- 9

@@ -35,8 +35,8 @@ class PIN_spec
     const int PIN_SDA = 20; // soudé
     //const int PIN_temp_alert = A3;  //Si on veut utiliser la sortie alert du détecteur de température MP102.
 
-    const int PIN_GPS_TX = 19; // soudé
-    const int PIN_GPS_RX = 18; // soudé
+    const int PIN_GPS_TX = 19; // soudé (port série Serial1) --> GPS
+    const int PIN_GPS_RX = 18; // soudé (port série Serial1) --> GPS
 };
 
 class Rover_spec
@@ -45,13 +45,14 @@ class Rover_spec
     //Rover_spec();
     const float rayonExterneRoueEnMetres = 0.175/2; // rayon des roues motrices
     const float tensionSeuilAlimMoteurs = 1.39; // tension à partir de laquelle les moteurs tournent, en V
-    const float numeroMagique = 6*30./0.85/1.04;  // nombre magique pour déterminer la conversion nombre de tours / temps d'activation pour les moteurs
+    const float numeroMagique = 6*30.*1.08;  // nombre magique pour déterminer la conversion nombre de tours / temps d'activation pour les moteurs
+    const float numeroMagique2 = 0.75;  // idem numeroMagique mais pour la rotation sur place
     const float rayonSurPlaceEnMetres = 0.42; // Il s'agit du rayon du cercle quand on tourne sur place.
     const int angleSurPlace = -83;  // l'angle dont il faut tourner les roues pour qu'elles soient tangentes au cercle circonscrit.
-    const int angleZeroAVD = 43;  // l'angle qui permet au servomoteur AVD de mettre la roue droite, dans l'axe du rover.
+    const int angleZeroAVD = 45;  // l'angle qui permet au servomoteur AVD de mettre la roue droite, dans l'axe du rover.
     const int angleZeroAVG = 125;  // l'angle qui permet au servomoteur AVG de mettre la roue droite, dans l'axe du rover.
     const int angleZeroARD = 125;  // l'angle qui permet au servomoteur ARD de mettre la roue droite, dans l'axe du rover.
-    const int angleZeroARG = 55;  // l'angle qui permet au servomoteur ARG de mettre la roue droite, dans l'axe du rover.
+    const int angleZeroARG = 60;  // l'angle qui permet au servomoteur ARG de mettre la roue droite, dans l'axe du rover.
 };
 
 class Rover_config

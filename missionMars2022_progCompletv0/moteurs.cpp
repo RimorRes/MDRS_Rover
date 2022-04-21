@@ -111,11 +111,15 @@ void tournerSurPlace(char sens, int angle){
   // sens vaut 'D' ou 'G'
   // si les PINs sont tels que sens = 1 pour un moteur le fasse avancer, et sens = 2 le fasse reculer.
   float perimetreSurPlace = 3.141592654 * 2 * rover_spec.rayonSurPlaceEnMetres;
-  float m = angle / 360 * perimetreSurPlace;
+//  Serial.println(perimetreSurPlace);
+  float m = angle / 360. * perimetreSurPlace;
+//  Serial.println(m);
   float perimetreRoue = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
   float tours = m / perimetreRoue;
-  float delayTime = getDelayTime();
+//  Serial.println(tours);
+  float delayTime = getDelayTime()*rover_spec.numeroMagique2;
   float tours_delaytime = delayTime * tours;
+//  Serial.println(tours_delaytime);
   switch (sens){
     case 'G':
       moteurAVD.activer(1);
