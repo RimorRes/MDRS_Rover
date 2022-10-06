@@ -1,7 +1,7 @@
 /* routines de gestion du capteur TMP102 pour surveiller la temp�rature interne du rover */
 #include<Arduino.h>
 #include <SparkFunTMP102.h>
-#define AFFICHAGE // commenter pour rendre moins bavard !
+//#define AFFICHAGE // commenter pour rendre moins bavard !
 
 boolean init_tmp102(TMP102 sensor0){
 
@@ -79,6 +79,14 @@ float read_temperature(TMP102 sensor0){
 String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
   String phrase_alerte ="";
   float temperature_int = read_temperature(sensor0); // température interne
+  
+  return "coucou";//phrase_alerte;
+}
+
+/*
+String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
+  String phrase_alerte ="";
+  float temperature_int = read_temperature(sensor0); // température interne
   // boolean alertPinState, alertRegisterState; // si on veut utiliser la sortie alert du TMP102
 
   // Print temperature and alarm state
@@ -93,5 +101,5 @@ String test_temp_int(TMP102 sensor0, float Tint_min, float Tint_max){
     phrase_alerte.concat("température interne trop haute\n");
   }
   
-  return phrase_alerte;
-}
+  return "coucou";//phrase_alerte;
+}*/

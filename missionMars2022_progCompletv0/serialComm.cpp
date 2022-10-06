@@ -2,7 +2,7 @@
 #include<Arduino.h>
 void Run(String INSTRUCTION);
 extern String messageBus;
-#define AFFICHAGE // à commenter pour enlever le bavardage
+//define AFFICHAGE // à commenter pour enlever le bavardage
 
 String serialPull(int TIMEOUT = 1000){ // Pulls/Reads incoming data from serial port. It reads one instrution but does not interpret it. 
   String phrase;
@@ -50,6 +50,9 @@ void lectureBus(){
     Serial.setTimeout(TIMEOUT); // le temps au bout duquel on arrête de surveiller le bus
     while (Serial.available()){ // tant que le bus n'est pas vide...
       reception = serialPull(); // on lit une instruction
+#ifdef AFFICHAGE
+      Serial.println("Je vais exécuter : " + reception);
+#endif
       Run(reception); // et on exécute l'instruction
     } // le bus est vide
   } // si ça ne commençait pas par "A" on n'a rien fait

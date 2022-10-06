@@ -17,10 +17,15 @@ def create_csv_file(file_path):
         writer.writerow(
             (
                 'Time',
-                'Temperature (C)',
+                'GPS',
+                'Accelerometer',
+                'Gyroscope',
+                'Magnetometer',
+                'Wind speed',
+                'Wind direction',
+                'Temp (C)',
                 'Pressure (hPa)',
-                'Humidity (%)',
-                'CPU Temp (C)'
+                'Humidity (%),
             )
         )
 
