@@ -23,7 +23,7 @@ Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_mesure_tension_alim){
   _PIN_moteur_1 = PIN_moteur_1;
   _PIN_moteur_2 = PIN_moteur_2;
   _PIN_mesure_tension_alim = PIN_mesure_tension_alim;
-  _delayTime = 1000*30/12;
+  _delayTime = 2500;  // 1000*30/12
 }
 
 boolean Moteur::init_moteur() {
