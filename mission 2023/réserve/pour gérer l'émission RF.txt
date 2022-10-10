@@ -1,0 +1,51 @@
+*********
+ATTENTION
+*********
+Ce fichier ne contient un code à prendre tel quel, mais des morceaux de code à intégrer
+
+
+
+définition des constantes et variables globales
+***********************************************
+/* antenne RF */
+#include <SPI.h>
+#include <RF24.h>
+#define tunnel  "PIPE1"       // On définit un "nom de tunnel" (5 caractères), pour pouvoir communiquer d'un NRF24 à l'autre
+RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01
+const byte adresseAntenne[6] = tunnel;               // Mise au format "byte array" du nom du tunnel
+
+dans setup()
+************
+  // initialisation de l'antenne RF
+  radio.begin();                      // Initialisation du module NRF24
+  radio.openWritingPipe(adresseAntenne);     // Ouverture du tunnel en ÉCRITURE, avec le "nom" qu'on lui a donné
+  radio.setPALevel(RF24_PA_MIN);      // Sélection d'un niveau "MINIMAL" pour communiquer (pas besoin d'une forte puissance, pour nos essais)
+  radio.stopListening();              // Arrêt de l'écoute du NRF24 (signifiant qu'on va émettre, et non recevoir, ici)
+
+
+dans la fonction Run(), en fin du fichier principal
+***************************************************
+        case 1: // requête de transmission d'un message via l'antenne
+          emettreMessage(arguments[0]);
+          break;
+
+quelque part dans le fichier principal, ou dans un module externe à inclure
+***************************************************************************
+boolean emettreMessage(String message){
+  int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
+  int nbrPhrases = int(message.length() / nbrCaracteresMax) +1;
+  String phrase;
+  for (int i=0;i<nbrPhrases;i++){
+    phrase = message;
+    int nbrCaracteres = min(nbrCaracteresMax, message.length());
+    Serial.println("début : " + message + " nbr = " + String(nbrCaracteres));
+    phrase = message.substring(0, nbrCaracteres); // on extrait la phrase à émettre
+    phrase.concat('\n');
+    Serial.println("   phrase : " + phrase);
+    message = message.substring(nbrCaracteres); // et on l'enlève du message
+    char msg[phrase.length()];     // Message à transmettre à l'autre NRF24 (32 caractères maxi, avec cette librairie)
+    phrase.toCharArray(msg, sizeof(msg)); // mise en forme : tableau de caractères
+    radio.write(&msg, sizeof(msg));     // Envoi de notre message 
+    //Serial.write(msg, sizeof(msg));
+  }
+}
