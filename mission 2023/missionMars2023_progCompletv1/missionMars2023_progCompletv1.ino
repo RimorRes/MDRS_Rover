@@ -21,6 +21,7 @@
  * servoMoteurs : gère les servomoteurs direction
  * specifications : paramètres chiffrés pour la configuration
  * temperatureInterne : gère le thermomètre interne
+ * obstacle : évite les obstacles et cherche un autre chemin
  ************************************/
  
 /**********************
@@ -153,6 +154,9 @@ TMP102 sensorTinterne; // donnera la température interne à 0,0625°C près
 Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo); // le seul utilisé pour l'instant
 // Ultrasonic ultrasonic_2(myPINs.PIN_detectObst2_Trig,myPINs.PIN_detectObst2_Echo);
 
+/* gestion d'obstacle */
+#include "obstacle.h"
+
 /* antenne RF */
 #include <SPI.h>
 #include <RF24.h>
@@ -193,6 +197,7 @@ String msg_alerte = "tout va bien\n";
 boolean goingHome = false; // déclarer extern en tête de déplacement.cpp
 
 /* déplacements */
+#include "deplacement.cpp"
 #if !defined DEPLACEMENT_H
 #include "deplacement.h"  // module codé par nous
 #define DEPLACEMENT_H
@@ -282,6 +287,9 @@ void setup()
     Serial.print("                   "); Serial.print(gps.lat); Serial.print(" N et "); Serial.print(gps.lon); Serial.println(" E");*/
   cheminSuivi = chemin.getPointDebut().toString();
 
+  obstacle_map carte;
+  Serial.println("fin de l'initialisation de la carte d'obstacle (par défaut max 1km*1km)");
+
   /*  Rover_config rover_config_test = rover_config;
     Serial.println("test sur les chemins");
     Serial.print("centre du repère : "); Serial.println(rover_config_test.getCentreRepere().affichage());
@@ -317,9 +325,8 @@ void loop()
 
   // test température
 if (OK_init_Tint) {
-//    msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
-    //msg_alerte += test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max);
-    ;
+//  msg_alerte = msg_alerte.concat(test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max));
+//  msg_alerte += test_temp_int(sensorTinterne, rover_config.Tint_min, rover_config.Tint_max);
 }
 
   // test distance obstacle

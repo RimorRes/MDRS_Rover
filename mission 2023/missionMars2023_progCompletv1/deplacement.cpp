@@ -3,18 +3,18 @@
 ************************************************************************/
 
 //#define AFFICHAGE // à commenter pour rendre moins bavard...
-#include <Arduino.h>
-#include <Math.h>
+//#include <Arduino.h>
+//#include <Math.h>
 #if !defined SPECIFICATIONS_H
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
 extern Rover_spec rover_spec;
 extern Rover_config rover_config;
-#if !defined DEPLACEMENT_H
+//#if !defined DEPLACEMENT_H
   #include "deplacement.h"
-  #define DEPLACEMENT_H
-#endif 
+//  #define DEPLACEMENT_H
+//#endif 
 extern Chemin chemin;
 extern float directionRover;
 extern boolean goingHome;

@@ -2,8 +2,6 @@
  * Définition des classes utiles pour gérer la position, la vitesse, ...
 ************************************************************************/
 
-#include <Arduino.h>
-
 class Point
 {
   public:
