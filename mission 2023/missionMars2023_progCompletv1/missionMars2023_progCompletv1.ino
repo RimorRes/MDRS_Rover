@@ -157,8 +157,9 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo
 #include <SPI.h>
 #include <RF24.h>
 #define tunnel  "PIPE1"       // On définit un "nom de tunnel" (5 caractères), pour pouvoir communiquer d'un NRF24 à l'autre
-RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01
+RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01 // déclarer extern en tête de RF.cpp
 const byte adresseAntenne[6] = tunnel;              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
+#include "RF.h"
 
 /* moteurs (propulsion) */
 #if !defined MOTEURS_H
@@ -206,6 +207,9 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire tampon comm série USB */
 String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
+
+/* mémoire tampon comm RF */
+String messageRF = "";
 
 /*******************************************************************************
             SETUP()
@@ -352,12 +356,18 @@ if (OK_init_Tint) {
   Serial.println("fin du message");Serial.println(" ");
 #endif
 
+  messageRF += "Hello world !";
+  String monOrdre ="";
+  monOrdre += "1_"; monOrdre += messageRF; monOrdre += ";";
+  Run(monOrdre);
+  messageRF ="";
+
   delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
-}
+} // FIN DE LOOP()
 
 void serialEvent() { // appelé automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
   return;
-}
+} // FIN DE serialEvent()
 
 /********************************
   GESTION DES SEQUENCES D'ORDRES
@@ -499,8 +509,8 @@ void RunChaineOrdres(String INSTRUCTIONS) {
   GROS BAZAR DE FONCTIONS...
 ****************************/
 
-// Pour la RF
-boolean emettreMessage(String message) {
+// Pour la RF : à enlever, car c'est externalisé dans RH.cpp
+/*boolean emettreMessage(String message) {
   int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
   int nbrPhrases = int(message.length() / nbrCaracteresMax) + 1;
   String phrase;
@@ -517,4 +527,4 @@ boolean emettreMessage(String message) {
     radio.write(&msg, sizeof(msg));     // Envoi de notre message
     //Serial.write(msg, sizeof(msg));
   }
-}
+}*/
