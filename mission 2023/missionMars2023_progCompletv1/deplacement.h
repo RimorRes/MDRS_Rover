@@ -19,6 +19,7 @@ class Point
     String affichage() const; // chaîne formattée avec les 3 coordonnées. ajouté pour les besoins de test
     String toString() const;  // chaîne formattée avec les 2 coordonnées (sans _T)
     Point relative(Point PointOrigine) const; // pour changer l'origine du repère
+    bool operator==(const Point Pother)const;
   private:
     float _X;
     float _Y;

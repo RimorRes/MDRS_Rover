@@ -207,6 +207,13 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 /* mémoire tampon comm série USB */
 String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
+/* obstacles */
+#if !defined OBSTACLE_H
+#include "obstacle.h"
+#define OBSTACLE_H
+#endif
+obstacle_map obsatcles;
+
 /*******************************************************************************
             SETUP()
 ********************************************************************************/
@@ -333,8 +340,9 @@ if (OK_init_Tint) {
     Serial.print(dist_2);
     Serial.println(" cm");*/
 #endif
-  if (dist_1 < rover_config.distanceMin) { // obstacle trop proche
+  if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
     messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
+    obsatcles.add_obstacle(obsatcles.obstacle_position_from_rover(Point(0, 0), rover_config.distanceMin, directionRover));// remplacer Point(0, 0) par la position de rover
   }
 
   // test tension alimentation
