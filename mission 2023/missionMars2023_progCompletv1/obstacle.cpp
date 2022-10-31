@@ -18,7 +18,7 @@
 
 Point obstacle_map::obstacle_position_from_rover(Point R, float d, float p)const{
 // ...avec R la position du rover, d la distance à l'obstacle et p la direction du rover. 
-    return Point(R.getX() + cos(p) * d, R.getY() + cos(p)*d);
+    return Point(R.getX() + cos(p) * d, R.getY() + sin(p)*d);
 }
 
 void obstacle_map::add_obstacle(Point P){
@@ -54,3 +54,8 @@ bool obstacle_map::is_existing_obstacle(Point P, float r)const{
 /********************
 * GESTION DU CHEMIN *
 ********************/
+
+Point obstacle_map::chemin_correction(Point P, float r, float p)const{
+// ...avec P l'obstacle et r la distance entre l'obstacle et le nouveau Point.
+    return Point(P.getX() + -sin(p) * r, P.getY() + cos(p) * r);
+}

@@ -6,6 +6,8 @@ public:
     void add_obstacle(Point P);
     void remove_obstacle(int n);
     bool is_existing_obstacle(Point P, float r)const;
+    bool fast_is_existing_obstacle(Point P, float r)const;
+    Point chemin_correction(Point P, float r, float p)const;
 private:
     Point* obstacles_liste;
     int obstacles_liste_len = 0;// nombre d'élement dans obstacles_liste
