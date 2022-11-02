@@ -46,3 +46,7 @@ Point convertSphereToPlan(float lat, float lon, Point origine){
 /*Point convertSphereToPlan(float lat, float lon){
   return convertSphereToPlan(lat, lon, _centreRepere);
 }*/
+
+const PIN_spec myPINs = PIN_spec();
+const Rover_spec rover_spec = Rover_spec();
+const Rover_config rover_config = Rover_config();

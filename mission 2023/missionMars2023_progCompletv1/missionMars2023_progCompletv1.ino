@@ -101,17 +101,22 @@
 #include "specifications.h"  // module codé par nous
 #define SPECIFICATIONS_H
 #endif
-PIN_spec myPINs; // définition des broches. utilisé dans moteurs.cpp
-// déclarer extern en tête de moteurs.cpp
-// déclarer extern en tête de servoMoteurs.cpp
-Rover_spec rover_spec; // spécifications du rover (géométrie, valeurs limites, ...)
-// déclaré extern en tête de déplacement.cpp
-// déclarer extern en tête de moteurs.cpp
-// déclarer extern en tête de servoMoteurs.cpp
-Rover_config rover_config;  // configuration du rover (paramètres du code)
-// déclaré extern en tête de déplacement.cpp
-// déclarer extern en tête de moteurs.cpp
-// déclarer extern en tête de servoMoteurs.cpp
+// variables globales (de specifications.h)
+// ------------------
+//PIN_spec myPINs;
+//  définition des broches.
+//  utilisé dans moteurs.cpp
+//  utilisé dans servoMoteurs.cpp
+//Rover_spec rover_spec;
+//  spécifications du rover (géométrie, valeurs limites, ...)
+//  utilisé dans déplacement.cpp
+//  utilisé dans moteurs.cpp
+//  utilisé dans servoMoteurs.cpp
+//Rover_config rover_config;
+//  configuration du rover (paramètres du code)
+//  utilisé dans déplacement.cpp
+//  utilisé dans moteurs.cpp
+//  utilisé dans servoMoteurs.cpp
 
 /*********
   MATERIEL
