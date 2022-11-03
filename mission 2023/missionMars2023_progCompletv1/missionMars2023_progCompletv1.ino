@@ -165,6 +165,7 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo
 RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01 // déclarer extern en tête de RF.cpp
 const byte adresseAntenne[6] = tunnel;              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
 #include "RF.h"
+// variable globale : String messageRF
 
 /* moteurs (propulsion) */
 #if !defined MOTEURS_H
@@ -211,10 +212,11 @@ String successionOrdresMarche = ""; // pour une mémoire de tous les ordres de m
 String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire tampon comm série USB */
-String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
+// inutilisé
+//String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
 /* mémoire tampon comm RF */
-String messageRF = "";
+//messageRF = ""; // initialisé dans RF.cpp
 
 /*******************************************************************************
             SETUP()
@@ -343,7 +345,7 @@ if (OK_init_Tint) {
     Serial.println(" cm");*/
 #endif
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche
-    messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
+    //
   }
 
   // test tension alimentation
@@ -430,16 +432,16 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
         // attention, ça peut être long.
         switch (arguments[0].toInt()) {
           case 1: // demande de transmission des messages d'alerte
-            messageBus += "3_1_" + msg_alerte + ";"; break;
+            messageRF += "3_1_" + msg_alerte + ";"; break;
           case 2: {// demande de transmission de la succession des ordres de marche
               String texte = successionOrdresMarche;
               texte.replace(";", "\n");
-              messageBus += "3_2_" + texte + ";"; break;
+              messageRF += "3_2_" + texte + ";"; break;
             }
           case 3: {// demande de transmission de l'historique du chemin suivi
               String texte = cheminSuivi;
               texte.replace(";", "\n");
-              messageBus += "3_3_" + texte + ";"; break;
+              messageRF += "3_3_" + texte + ";"; break;
             }
           default:
             break;
@@ -447,11 +449,11 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
         break;
       case 6: {// requête de transmission des données des capteurs pour la cartographie
           String message = "6_";
-message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
-message += String("");  // pression, unité ?, décimal avec un point
+          message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
+          message += String("");  // pression, unité ?, décimal avec un point
           message += String("");  // vitesse vent (norme du vecteur), unité ?, décimal avec un point
           message += String("");  // angle horizontal direction vent, en degrés ? par rapport à [Ox) sens trigo ?, décimal avec un point
-          messageBus += message + ";";
+          messageRF += message + ";";
           break;
         }
       case 11:  // ordre de marche : avancer
