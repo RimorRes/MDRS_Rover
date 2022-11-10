@@ -41,7 +41,9 @@ void Obstacle::removeObstacle(int n){
 bool Obstacle::isExistingObstacle(Point P, float r)const{
 // ...avec r la précision. 
     for(int i = _obstaclesListeLen; i <= _obstaclesListeLen; i++){
-        if((_obstaclesListe[i].getX()*_obstaclesListe[i].getX())+(_obstaclesListe[i].getY()*_obstaclesListe[i].getY())>=r*r){
+        float x = _obstaclesListe[i].getX(); // /!\ a faire: soustraire la position du rover
+        float y = _obstaclesListe[i].getY(); // la meme
+        if(x*x + y*y >= r*r){
             return true;
         }
     }
