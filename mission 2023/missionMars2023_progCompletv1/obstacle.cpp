@@ -40,14 +40,6 @@ void Obstacle::removeObstacle(int n){
 
 bool Obstacle::isExistingObstacle(Point P, float r)const{
 // ...avec r la précision. 
-    for(int i = _obstaclesListeLen; i <= _obstaclesListeLen; i++){
-        float x = _obstaclesListe[i].getX() - P.getX();
-        float y = _obstaclesListe[i].getY() - P.getY();
-        if(x*x + y*y >= r*r){
-            return true;
-        }
-    }
-    return false;
 }
 
 /********************
