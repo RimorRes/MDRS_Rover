@@ -212,7 +212,7 @@ String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 #include "obstacle.h"
 #define OBSTACLE_H
 #endif
-obstacle_map obsatcles;
+Obstacle obstacles;
 
 /*******************************************************************************
             SETUP()
@@ -342,9 +342,9 @@ if (OK_init_Tint) {
 #endif
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
     messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
-    Point _P = obsatcles.obstacle_position_from_rover(Point(0, 0), rover_config.distanceMin, directionRover);// remplacer Point(0, 0) par la position de rover
-    obsatcles.add_obstacle(_P);
-    chemin.addPoint(chemin.getNumeroPointActuel(), obsatcles.chemin_correction(_P, rover_config.distanceMin, directionRover));
+    Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover);
+    obstacles.addObstacle(P);
+    chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
   }
 
   // test tension alimentation

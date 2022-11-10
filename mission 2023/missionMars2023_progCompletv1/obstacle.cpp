@@ -1,8 +1,10 @@
-// On admet que la position parfaite Point(0, 0) n'existe pas. Cela permet dedéfinir une position inexistante. 
-
 #include "Arduino.h"
 #include "Math.h"
 
+#if !defined SPECIFICATIONS_H
+#include "specifications.h"
+#define SPECIFICATIONS_H
+#endif
 #if !defined DEPLACEMENT_H
 #include "deplacement.h"
 #define DEPLACEMENT_H
@@ -13,38 +15,33 @@
 #endif
 
 /*****************************
-* GESTION DE obstacles_liste *
+* GESTION DE _obstaclesListe *
 *****************************/
 
-Point obstacle_map::obstacle_position_from_rover(Point R, float d, float p)const{
+Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
 // ...avec R la position du rover, d la distance à l'obstacle et p la direction du rover. 
     return Point(R.getX() + cos(p) * d, R.getY() + sin(p)*d);
 }
 
-void obstacle_map::add_obstacle(Point P){
-    if(is_existing_obstacle(P, 0.1f)){return;}// (en m)
-// Pour ne pas laisser des cases vides...
-    for(int i = obstacles_liste_len; i<obstacles_liste_len; i++){
-        if(obstacles_liste[i] == Point(0, 0)){
-            obstacles_liste[i] = P;
-            return;
-        }
-    }
-// Si toutes les cases sont occupés...
-    obstacles_liste = new Point[0];
-    obstacles_liste_len++;
-    obstacles_liste[obstacles_liste_len] = P;
+void Obstacle::addObstacle(Point P){
+    if(isExistingObstacle(P, rover_config.distanceMin)){return;}// l'obstacle existe déjà dans ces parages
+	_obstaclesListeLen++;
+	_obstaclesListe[_obstaclesListeLen] = P;
 }
 
-void obstacle_map::remove_obstacle(int n){
-// ...avec n l'emplacement de l'obstacle à retirer. 
-    obstacles_liste[n] = Point(0, 0);
+void Obstacle::removeObstacle(int n){
+	_obstaclesListeLen--;
+	if(n != _obstaclesListeLen + 1){
+		for(int i = n; i < _obstaclesListeLen; i++){
+			_obstaclesListe[i] = _obstaclesListe[i + 1];
+		}
+	}
 }
 
-bool obstacle_map::is_existing_obstacle(Point P, float r)const{
+bool Obstacle::isExistingObstacle(Point P, float r)const{
 // ...avec r la précision. 
-    for(int i = obstacles_liste_len; i<=obstacles_liste_len; i++){
-        if((obstacles_liste[i].getX()*obstacles_liste[i].getX())+(obstacles_liste[i].getY()*obstacles_liste[i].getY())>=r*r){
+    for(int i = _obstaclesListeLen; i <= _obstaclesListeLen; i++){
+        if((_obstaclesListe[i].getX()*_obstaclesListe[i].getX())+(_obstaclesListe[i].getY()*_obstaclesListe[i].getY())>=r*r){
             return true;
         }
     }
@@ -55,7 +52,7 @@ bool obstacle_map::is_existing_obstacle(Point P, float r)const{
 * GESTION DU CHEMIN *
 ********************/
 
-Point obstacle_map::chemin_correction(Point P, float r, float p)const{
+Point Obstacle::cheminCorrection(Point P, float r, float p)const{
 // ...avec P l'obstacle et r la distance entre l'obstacle et le nouveau Point.
-    return Point(P.getX() + -sin(p) * r, P.getY() + cos(p) * r);
+    return Point(P.getX()+(-sin(p))*r, P.getY()+cos(p)*r);
 }
