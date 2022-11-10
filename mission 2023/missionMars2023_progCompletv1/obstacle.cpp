@@ -24,7 +24,7 @@ Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
 }
 
 void Obstacle::addObstacle(Point P){
-    if(isExistingObstacle(P, rover_config.distanceMin)){return;}// l'obstacle existe déjà dans ces parages
+    if(isExistingObstacle(P, 0.1f)){return;}// l'obstacle existe déjà dans ces parages
 	_obstaclesListeLen++;
 	_obstaclesListe[_obstaclesListeLen] = P;
 }
@@ -40,6 +40,12 @@ void Obstacle::removeObstacle(int n){
 
 bool Obstacle::isExistingObstacle(Point P, float r)const{
 // ...avec r la précision. 
+	for(int i = _obstaclesListeLen; i <= _obstaclesListeLen; i++){
+        if((_obstaclesListe[i].getX()*_obstaclesListe[i].getX())+(_obstaclesListe[i].getY()*_obstaclesListe[i].getY())>=r*r){
+            return true;
+        }
+    }
+	return false;
 }
 
 /********************
