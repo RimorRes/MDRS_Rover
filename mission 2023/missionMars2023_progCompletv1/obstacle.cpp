@@ -42,7 +42,9 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
 // ...avec r la précision. 
 	r *= r;
 	for(int i = _obstaclesListeLen; i < 0; i--){
-		if((_obstaclesListe[i].getX() - P.getX())*(_obstaclesListe[i].getX()) + (_obstaclesListe[i].getY() - P.getY())*(_obstaclesListe[i].getY() - P.getY()) <= r){
+		float x = (_obstaclesListe[i].getX() - P.getX());
+		float y = (_obstaclesListe[i].getY() - P.getY());
+		if(x*x + y*y <= r){
 			return true
 		}
 	}
