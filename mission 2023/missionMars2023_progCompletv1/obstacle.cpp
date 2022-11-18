@@ -49,6 +49,7 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
 		}
 	}
 	return false;
+	//Optimisation future : array bidimentionnel de pointeur de points. Inutile à ce stade.  
 }
 
 /********************
@@ -57,5 +58,5 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
 
 Point Obstacle::cheminCorrection(Point P, float r, float p)const{
 // ...avec P l'obstacle et r la distance entre l'obstacle et le nouveau Point.
-    return Point(P.getX()+(-sin(p))*r, P.getY()+cos(p)*r);
+    return Point(P.getX() + (-sin(p))*r, P.getY() + cos(p)*r);
 }
