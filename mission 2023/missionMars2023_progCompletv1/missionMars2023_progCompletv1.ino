@@ -343,7 +343,7 @@ if (OK_init_Tint) {
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
     messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
     Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover);
-    obstacles.addObstacle(P);
+    obstacles.addObstacle(P, rover_config.distanceMin);
     chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
   }
 

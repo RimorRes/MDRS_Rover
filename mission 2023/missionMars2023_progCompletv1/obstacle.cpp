@@ -23,8 +23,8 @@ Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
     return Point(R.getX() + cos(p) * d, R.getY() + sin(p)*d);
 }
 
-void Obstacle::addObstacle(Point P){
-    if(isExistingObstacle(P, 0.1f)){return;}// l'obstacle existe déjà dans ces parages
+void Obstacle::addObstacle(Point P, float r){
+    if(isExistingObstacle(P, r)){return;}// l'obstacle existe déjà dans ces parages
 	_obstaclesListeLen++;
 	_obstaclesListe[_obstaclesListeLen] = P;
 }
@@ -38,13 +38,14 @@ void Obstacle::removeObstacle(int n){
 	}
 }
 
-bool Obstacle::isExistingObstacle(Point P, float r)const{
+bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
 // ...avec r la précision. 
-	for(int i = _obstaclesListeLen; i <= _obstaclesListeLen; i++){
-        if((_obstaclesListe[i].getX()*_obstaclesListe[i].getX())+(_obstaclesListe[i].getY()*_obstaclesListe[i].getY())>=r*r){
-            return true;
-        }
-    }
+	r *= r;
+	for(int i = _obstaclesListeLen; i < 0; i--){
+		if((_obstaclesListe[i].getX() - P.getX())*(_obstaclesListe[i].getX()) + (_obstaclesListe[i].getY() - P.getY())*(_obstaclesListe[i].getY() - P.getY()) <= r){
+			return true
+		}
+	}
 	return false;
 }
 
