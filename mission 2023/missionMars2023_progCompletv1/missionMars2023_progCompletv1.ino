@@ -216,7 +216,7 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 //String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
 /* mémoire tampon comm RF */
-//messageRF = ""; // initialisé dans RF.cpp
+String messageRF = ""; // initialisé dans RF.cpp
 
 /* obstacles */
 #if !defined OBSTACLE_H
@@ -352,7 +352,7 @@ if (OK_init_Tint) {
     Serial.println(" cm");*/
 #endif
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
-    messageBus += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
+    messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
     Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover);
     obstacles.addObstacle(P, rover_config.distanceMin);
     chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
