@@ -216,7 +216,7 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 //String messageBus = ""; // déclarer extern en tête de SerialComm.cpp
 
 /* mémoire tampon comm RF */
-String messageRF = ""; // initialisé dans RF.cpp
+//String messageRF = ""; // initialisé dans RF.cpp
 
 /* obstacles */
 #if !defined OBSTACLE_H

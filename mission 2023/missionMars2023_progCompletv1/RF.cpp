@@ -5,7 +5,7 @@
 //#define AFFICHAGE // à commenter pour rendre moins bavard...
 #include <Arduino.h>
 #include <RF24.h>
-//String messageRF = "";
+String messageRF = "";
 extern RF24 radio;
 
 boolean emettreMessage(String message){
