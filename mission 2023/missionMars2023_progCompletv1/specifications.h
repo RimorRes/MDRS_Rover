@@ -97,3 +97,7 @@ class Rover_config
     const Chemin cheminParDefaut = initCheminParDefaut(); // valeur : voir dans le fichier .cpp
 
 };
+
+extern const PIN_spec myPINs;
+extern const Rover_spec rover_spec;
+extern const Rover_config rover_config;

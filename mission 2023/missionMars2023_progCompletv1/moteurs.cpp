@@ -10,9 +10,6 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
-extern PIN_spec myPINs;
-extern Rover_spec rover_spec;
-extern Rover_config rover_config;
 #if !defined MOTEURS_H
   #include "moteurs.h"
   #define MOTEURS_H

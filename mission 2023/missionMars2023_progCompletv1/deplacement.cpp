@@ -9,8 +9,6 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
-extern Rover_spec rover_spec;
-extern Rover_config rover_config;
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
