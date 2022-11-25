@@ -66,6 +66,11 @@ Point Point::relative(Point PointOrigine) const{
   return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _T-PointOrigine.getT());
 }
 
+bool Point::operator==(const Point Pother)const{
+// ...avec Pother le Point de comparaison, nécéssaire pour add_obstacle() et is_existing_obstacle(). 
+// ref: http://courses.cms.caltech.edu/cs11/material/cpp/donnie/cpp-ops.html
+  return (getX() == Pother.getX()) && (getY() == Pother.getY());
+}
 
 /***************
  * classe Chemin
