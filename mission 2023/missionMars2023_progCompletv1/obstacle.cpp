@@ -23,10 +23,10 @@ Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
   return Point(R.getX() + cos(p) * d, R.getY() + sin(p) * d);
 }
 
-void Obstacle::addObstacle(Point P, float r){
+void Obstacle::addObstacle(ObstacleObject obj, float r){
   if(_obstaclesListeLen < _obstaclesListeSize - 1){
-    if(isExistingObstacle(P, r)){ return; } // l'obstacle existe déjà dans ces parages
-    _obstaclesListe[++_obstaclesListeLen] = P; // ++_obstaclesListeLen incremente la variable avant de l'utiliser comme index
+    if(isExistingObstacle(obj.pos, r)){ return; } // l'obstacle existe déjà dans ces parages
+    _obstaclesListe[++_obstaclesListeLen] = obj; // ++_obstaclesListeLen incremente la variable avant de l'utiliser comme index
   }
 }
 
@@ -43,8 +43,8 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
   // ...avec r la précision. 
   const float r2 = r_ignore * r_ignore;
   for(int i = 0; i < _obstaclesListeLen; i++){
-    float x = _obstaclesListe[i].getX() - P.getX();
-    float y = _obstaclesListe[i].getY() - P.getY();
+    float x = _obstaclesListe[i].pos.getX() - P.getX();
+    float y = _obstaclesListe[i].pos.getY() - P.getY();
     if(x * x + y * y <= r2){ return true; }
   }
   return false;
