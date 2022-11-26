@@ -8,7 +8,7 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif
-extern Rover_config rover_config;
+//extern Rover_config rover_config;
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
@@ -114,7 +114,7 @@ void testGPS(){
 }
 
 // conversion des données latitude/longitude en x/y par rapport au centre du repère sur la carte
-Point convertSphereToPlan(float lat, float lon, Point origine){
+Point convertSphereToPlanGPS(float lat, float lon, Point origine){
   // angles en degrés, valeurs décimales
   // latitude : positive pour le nord, négative pour le sud
   // longitude : positive pour l'est, négative pour l'ouest
@@ -125,12 +125,12 @@ Point convertSphereToPlan(float lat, float lon, Point origine){
   x -= origine.getX();
   return Point(x, y);
 }
-Point convertSphereToPlan(float lat, float lon){
+Point convertSphereToPlanGPS(float lat, float lon){
   return convertSphereToPlan(lat, lon, rover_config.getCentreRepere());
 }
 
 // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
-float convertDegMinSecToDecimal(float deg, float minutes, float sec){
+float convertDegMinSecToDecimalGPS(float deg, float minutes, float sec){
   minutes += sec /60;
   deg += minutes / 60;
   return deg;
