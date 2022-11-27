@@ -41,12 +41,12 @@ void Obstacle::removeObstacle(int n){
 }
 
 bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
-  // ...avec r la précision. 
-  const float r2 = r_ignore * r_ignore;
+  // ...avec r_ignore la précision. 
+  r_ignore *= r_ignore;
   for(int i = 0; i < _obstaclesListeLen; i++){
     float x = _obstaclesListe[i].pos.getX() - P.getX();
     float y = _obstaclesListe[i].pos.getY() - P.getY();
-    if(x * x + y * y <= r2){ return true; }
+    if(x * x + y * y <= r_ignore){ return true; }
   }
   return false;
   //Optimisation future : array bidimentionnel de pointeur de points. Inutile à ce stade.  
