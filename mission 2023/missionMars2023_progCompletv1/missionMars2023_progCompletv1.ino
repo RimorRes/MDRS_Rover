@@ -355,7 +355,7 @@ if (OK_init_Tint) {
     messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
     ObstacleObject obj = { obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover), 0.0f };
     obstacles.addObstacle(obj, rover_config.distanceMin);
-    chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(obj.pos, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
+    chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(obj._pos, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
   }
 
   // test tension alimentation

@@ -1,6 +1,6 @@
 #include "Arduino.h"
 
-const int _obstaclesListeSize = 20;
+const int obstaclesListeSize = 20; // est completement en dehors de la classe Obstacle | s'il y a plus propre, je suis preneur
 
 struct ObstacleObject{
     Point _pos;
@@ -15,7 +15,7 @@ public:
     bool isExistingObstacle(Point P, float r)const;
     Point cheminCorrection(Point P, float r, float p)const;
 private:
-    ObstacleObject _obstaclesListe[_obstaclesListeSize];
+    ObstacleObject _obstaclesListe[obstaclesListeSize];
     int _obstaclesListeLen = 0;// nombre d'élement dans _obstaclesListe
-    const int _obstaclesListeSize = _obstaclesListeSize;
+    const int _obstaclesListeSize = obstaclesListeSize;
 };
