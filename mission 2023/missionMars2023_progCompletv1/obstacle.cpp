@@ -24,14 +24,15 @@ Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
 }
 
 void Obstacle::addObstacle(ObstacleObject obj, float r){
-  if(_obstaclesListeLen < _obstaclesListeSize - 1){
+  if(_obstaclesListeLen < _obstaclesListeSize){
     if(isExistingObstacle(obj.pos, r)){ return; } // l'obstacle existe déjà dans ces parages
-    _obstaclesListe[++_obstaclesListeLen] = obj; // ++_obstaclesListeLen incremente la variable avant de l'utiliser comme index
+    _obstaclesListeLen++;
+    _obstaclesListe[_obstaclesListeLen - 1] = obj;
   }
 }
 
 void Obstacle::removeObstacle(int n){
-  if(_obstaclesListeLen > 0 && n <= _obstaclesListeLen){
+  if(_obstaclesListeLen > 0 && n < _obstaclesListeLen){
     for(int i = n; i < _obstaclesListeLen; i++){
       _obstaclesListe[i] = _obstaclesListe[i + 1];
     }
