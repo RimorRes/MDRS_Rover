@@ -15,6 +15,7 @@
   #define MOTEURS_H
 #endif
 extern  Moteur moteurAVD, moteurAVG, moteurARD, moteurARG;
+extern float distanceParcourue;
 
 Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_mesure_tension_alim){
   _PIN_moteur_1 = PIN_moteur_1;
@@ -70,6 +71,7 @@ void Moteur::avancer_t(int sens, float tours){
   activer(sens);
   delay(tours_delaytime);
   desactiver();
+  distanceParcourue += tours * 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
   //Serial.println("Avancer tours END");
 }
 
@@ -100,6 +102,7 @@ void avancerTous(int sens, float m){
   moteurAVG.desactiver();
   moteurARD.desactiver();
   moteurARG.desactiver();
+  distanceParcourue += m;
   return;
 }
 
