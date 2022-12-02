@@ -12,4 +12,5 @@ private:
     Point _obstaclesListe[20];
     int _obstaclesListeLen = 0;// nombre d'élement dans _obstaclesListe
     const int _obstaclesListeSize = 20;
+    const float _distanceThreshold = 10.0f;
 };

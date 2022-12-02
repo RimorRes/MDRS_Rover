@@ -58,7 +58,7 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
 
 void Obstacle::updateObstaclesListe(){
   for(int i = 0; i < _obstaclesListeLen; i++){
-    if(distanceParcourue - _obstaclesListe[i].getDistanceDeDetection() > 10.0f){
+    if(distanceParcourue - _obstaclesListe[i].getDistanceDeDetection() > _distanceThreshold){
       removeObstacle(i);
     }
   }
