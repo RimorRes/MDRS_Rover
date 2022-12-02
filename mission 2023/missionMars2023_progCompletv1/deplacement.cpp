@@ -26,33 +26,33 @@ Point::Point()
 {
   _X = 0;
   _Y = 0;
-  _T = 0;
+  _distanceDeDetection = 0;
 }
 
 Point::Point(float X, float Y)
 {
   _X = X;
   _Y = Y;
-  _T = 0;
+  _distanceDeDetection = 0;
 }
 
-Point::Point(float X, float Y, float T)
+Point::Point(float X, float Y, float DistanceDeDetection)
 {
   _X = X;
   _Y = Y;
-  _T = T;
+  _distanceDeDetection = DistanceDeDetection;
 }
 
 float Point::getX() const{return _X;}
 float Point::getY() const{return _Y;}
-float Point::getT() const{return _T;}
+float Point::getDistanceDeDetection() const{return _distanceDeDetection;}
 
 void Point::setX(float X){_X = X;}
 void Point::setY(float Y){_Y = Y;}
-void Point::setT(float T){_T = T;}
+void Point::setDistanceDeDetection(float DistanceDeDetection){_distanceDeDetection = DistanceDeDetection;}
 
 String Point::affichage() const{
-  return String(_X) + String(", ") + String(_Y) + String(", ") + String(_T);
+  return String(_X) + String(", ") + String(_Y) + String(", ") + String(_distanceDeDetection);
 }
 
 String Point::toString() const{
@@ -63,7 +63,7 @@ String Point::toString() const{
 
 Point Point::relative(Point PointOrigine) const{
   // pour changer l'origine du repère
-  return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _T-PointOrigine.getT());
+  return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _distanceDeDetection-PointOrigine.getDistanceDeDetection());
 }
 
 bool Point::operator==(const Point Pother)const{
