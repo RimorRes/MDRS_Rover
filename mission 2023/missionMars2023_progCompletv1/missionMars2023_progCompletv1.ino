@@ -353,7 +353,6 @@ if (OK_init_Tint) {
     Serial.print(dist_2);
     Serial.println(" cm");*/
 #endif
-  for(int i = 0)
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
     messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
     Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover);

@@ -13,6 +13,10 @@
 #include "obstacle.h"
 #define OBSTACLE_H
 #endif
+#if !defined MOTEURS_H
+#include "moteurs.h"
+#define MOTEURS_H
+#endif
 
 /*****************************
 * GESTION DE _obstaclesListe *
@@ -50,6 +54,14 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
   }
   return false;
   //Optimisation future : array bidimentionnel de pointeur de points. Inutile à ce stade.  
+}
+
+void Obstacle::updateObstaclesListe(){
+  for(int i = 0; i < _obstaclesListeLen; i++){
+    if(distanceParcourue - _obstaclesListe[i].getDistanceDeDetection() > 10.0f){
+      removeObstacle(i);
+    }
+  }
 }
 
 /********************

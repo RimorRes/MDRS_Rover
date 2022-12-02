@@ -6,8 +6,8 @@ public:
     void addObstacle(Point P, float r_ignore);
     void removeObstacle(int n);
     bool isExistingObstacle(Point P, float r)const;
+    void updateObstaclesListe(void);
     Point cheminCorrection(Point P, float r, float p)const;
-    void updateObstaclesListe;
 private:
     Point _obstaclesListe[20];
     int _obstaclesListeLen = 0;// nombre d'élement dans _obstaclesListe

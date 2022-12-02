@@ -15,7 +15,6 @@
   #define MOTEURS_H
 #endif
 extern  Moteur moteurAVD, moteurAVG, moteurARD, moteurARG;
-extern float distanceParcourue;
 
 Moteur::Moteur(int PIN_moteur_1, int PIN_moteur_2, int PIN_mesure_tension_alim){
   _PIN_moteur_1 = PIN_moteur_1;
