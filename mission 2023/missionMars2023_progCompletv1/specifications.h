@@ -4,9 +4,6 @@
   #define DEPLACEMENT_H
 #endif 
 
-float convertDegMinSecToDecimal(float deg, float minutes, float sec);  // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
-Point convertSphereToPlan(float lat, float lon, Point origine); // conversion des données latitude/longitude en x/y par rapport au centre du repère sur la carte
-
 class PIN_spec
 {
   public:
@@ -19,7 +16,7 @@ class PIN_spec
     const int PIN_moteurARD_2 = 8;//13; // moteur arrière droit sens 1 // soudé
     const int PIN_moteurARG_1 = 11;//8; // moteur arrière gauche sens 2 // soudé
     const int PIN_moteurARG_2 = 10;//9; // moteur arrière gauche sens 1 // soudé
-    const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs  --> à enlever ?
+    const int PIN_mesure_tension_alim = A0; // mesure tension alimentation des moteurs
 
     const int PIN_servoAVD = 23;  // servomoteur pour la direction, avant droit. // soudé
     const int PIN_servoAVG = 22;  // servomoteur pour la direction, avant gauche. // soudé
@@ -38,8 +35,8 @@ class PIN_spec
     const int PIN_SDA = 20; // soudé
     //const int PIN_temp_alert = A3;  //Si on veut utiliser la sortie alert du détecteur de température MP102.
 
-//    const int PIN_GPS_TX = 19; // soudé (port série Serial1) --> GPS
-//    const int PIN_GPS_RX = 18; // soudé (port série Serial1) --> GPS
+    const int PIN_GPS_TX = 19; // soudé (port série Serial1) --> GPS
+    const int PIN_GPS_RX = 18; // soudé (port série Serial1) --> GPS
 };
 
 class Rover_spec
@@ -61,43 +58,38 @@ class Rover_spec
 class Rover_config
 {
   public:
-    //Rover_config();
-//    const float Tint_min = 5; // seuil d'alerte bas pour la température interne, en degrés
-//    const float Tint_max = 80; // seuil d'alerte haut pour la température interne, en degrés
+    Rover_config();
+    const float Tint_min = 5; // seuil d'alerte bas pour la température interne, en degrés
+    const float Tint_max = 80; // seuil d'alerte haut pour la température interne, en degrés
 
-//    const float tensionAlerteMin = 10;  // seuil d'alerte bas, en volts  --> à enlever ?
-//    const float tensionAlerteMax = 13;  // seuil d'alerte haut, en volts  --> à enlever ?
-    const float tensionCodeMin = 10;  // le code ne prendra pas en compte des valeurs inférieures (protège contre défaillance mesure)  --> à enlever ?
-    const float tensionCodeMax = 13;  // le code ne prendra pas en compte des valeurs supérieures (protège contre défaillance mesure)  --> à enlever ?
+    const float tensionAlerteMin = 10;  // seuil d'alerte bas, en volts
+    const float tensionAlerteMax = 13;  // seuil d'alerte haut, en volts
+    const float tensionCodeMin = 10;  // le code ne prendra pas en compte des valeurs inférieures (protège contre défaillance mesure)
+    const float tensionCodeMax = 13;  // le code ne prendra pas en compte des valeurs supérieures (protège contre défaillance mesure)
 
-    const float distanceMin = 0.1;  // distance seuil (en m), en-deça de laquelle on détecte qu'il y a problème (détection d'obstacle)
+    const float distanceMin = 0.1;  // distance seuil en-deça de laquelle on détecte qu'il y a problème
 
-    // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cpp
+    // Si l'une des deux valeurs de tolérance est trop élevée, modifier le code de String Chemin::goToNext() dans deplacement.cp
     const float tolerancePosition = 0.5;  // tolerance sur la position pour déclarer l'égalité, en mètres, > 0.1
     const float toleranceAngle = 5; // tolerance sur l'angle pour déclarer l'égalité, en degrés, > 1
     const float pasChemin = 3; // pas pour la génération des points intermédiaires sur le chemin, en mètres. précision GPS : 5 à 10 mètres.
     const float directionInitiale = 0; // initialement, le rover pointe à l'Est.
 
+    void setCentreRepere(Point point);
     Point getCentreRepere() const;
+    void actualiserLimites();
     Point getLimiteSO() const;
     Point getLimiteNO() const;
     Point getLimiteNE() const;
-    Chemin getCheminParDefaut() const;
 
   private:
-    const Point _origineAbsolue = Point(0,0);
-    const Point _centreRepere = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05), _origineAbsolue);// = _limiteSO : l'origine du repère sur la carte.
-    const Point _limiteSO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05), _centreRepere); // 38°24'22.90"N, 110°47'23.05"O
-    const Point _limiteNO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.11), -convertDegMinSecToDecimal(110, 47, 23.74), _centreRepere); // 38°24'42.11"N, 110°47'23.74"O
-    const Point _limiteNE = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.55), -convertDegMinSecToDecimal(110, 47, 5.81), _centreRepere); // 38°24'42.55"N, 110°47'5.81"O
+    Point _centreRepere; // l'origine du repère sur la carte. valeur par défaut : voir dans le fichier .cpp
+    Point _limiteSO; // valeur par défaut : voir dans le fichier .cpp
+    Point _limiteNO; // valeur par défaut : voir dans le fichier .cpp
+    Point _limiteNE; // valeur par défaut : voir dans le fichier .cpp
 
   public:
-    Chemin initCheminParDefaut();
   // La déclaration suivante doit être la dernière, sinon ça bugge.
-    const Chemin cheminParDefaut = initCheminParDefaut(); // valeur : voir dans le fichier .cpp
+    Chemin cheminParDefaut; // valeur : voir dans le fichier .cpp
 
 };
-
-extern const PIN_spec myPINs;
-extern const Rover_spec rover_spec;
-extern const Rover_config rover_config;

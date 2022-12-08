@@ -9,21 +9,20 @@ class Point
   public:
     Point();
     Point(float X, float Y);
-    Point(float X, float Y, float DistanceDeDetection);
+    Point(float X, float Y, float T);
     float getX() const;
     float getY() const;
-    float getDistanceDeDetection() const;
+    float getT() const;
     void setX(float X);
     void setY(float Y);
-    void setDistanceDeDetection(float DistanceDeDetection);
+    void setT(float T);
     String affichage() const; // chaîne formattée avec les 3 coordonnées. ajouté pour les besoins de test
     String toString() const;  // chaîne formattée avec les 2 coordonnées (sans _T)
     Point relative(Point PointOrigine) const; // pour changer l'origine du repère
-    bool operator==(const Point) const;
   private:
     float _X;
     float _Y;
-    float _distanceDeDetection;
+    float _T;
 };
 
 class Chemin  // utilise la classe Point

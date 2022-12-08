@@ -10,6 +10,9 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
+extern PIN_spec myPINs;
+extern Rover_spec rover_spec;
+extern Rover_config rover_config;
 #if !defined MOTEURS_H
   #include "moteurs.h"
   #define MOTEURS_H
@@ -70,7 +73,6 @@ void Moteur::avancer_t(int sens, float tours){
   activer(sens);
   delay(tours_delaytime);
   desactiver();
-  distanceParcourue += tours * 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
   //Serial.println("Avancer tours END");
 }
 
@@ -101,7 +103,6 @@ void avancerTous(int sens, float m){
   moteurAVG.desactiver();
   moteurARD.desactiver();
   moteurARG.desactiver();
-  distanceParcourue += m;
   return;
 }
 

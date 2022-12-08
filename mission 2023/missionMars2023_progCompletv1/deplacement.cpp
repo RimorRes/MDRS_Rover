@@ -9,6 +9,8 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
+extern Rover_spec rover_spec;
+extern Rover_config rover_config;
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
@@ -26,33 +28,33 @@ Point::Point()
 {
   _X = 0;
   _Y = 0;
-  _distanceDeDetection = 0;
+  _T = 0;
 }
 
 Point::Point(float X, float Y)
 {
   _X = X;
   _Y = Y;
-  _distanceDeDetection = 0;
+  _T = 0;
 }
 
-Point::Point(float X, float Y, float DistanceDeDetection)
+Point::Point(float X, float Y, float T)
 {
   _X = X;
   _Y = Y;
-  _distanceDeDetection = DistanceDeDetection;
+  _T = T;
 }
 
 float Point::getX() const{return _X;}
 float Point::getY() const{return _Y;}
-float Point::getDistanceDeDetection() const{return _distanceDeDetection;}
+float Point::getT() const{return _T;}
 
 void Point::setX(float X){_X = X;}
 void Point::setY(float Y){_Y = Y;}
-void Point::setDistanceDeDetection(float DistanceDeDetection){_distanceDeDetection = DistanceDeDetection;}
+void Point::setT(float T){_T = T;}
 
 String Point::affichage() const{
-  return String(_X) + String(", ") + String(_Y) + String(", ") + String(_distanceDeDetection);
+  return String(_X) + String(", ") + String(_Y) + String(", ") + String(_T);
 }
 
 String Point::toString() const{
@@ -63,14 +65,9 @@ String Point::toString() const{
 
 Point Point::relative(Point PointOrigine) const{
   // pour changer l'origine du repère
-  return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _distanceDeDetection-PointOrigine.getDistanceDeDetection());
+  return Point(_X-PointOrigine.getX(), _Y-PointOrigine.getY(), _T-PointOrigine.getT());
 }
 
-bool Point::operator==(const Point Pother)const{
-// ...avec Pother le Point de comparaison, nécéssaire pour add_obstacle() et is_existing_obstacle(). 
-// ref: http://courses.cms.caltech.edu/cs11/material/cpp/donnie/cpp-ops.html
-  return (getX() == Pother.getX()) && (getY() == Pother.getY());
-}
 
 /***************
  * classe Chemin

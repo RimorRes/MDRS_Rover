@@ -1,10 +1,6 @@
 /* routines de gestion du capteur TMP102 pour surveiller la temp�rature interne du rover */
 #include<Arduino.h>
 #include <SparkFunTMP102.h>
-#if !defined TEMPERATUREINTERNE_H
-#include "temperatureInterne.h"  // module codé par nous
-#define TEMPERATUREINTERNE_H
-#endif
 //#define AFFICHAGE // commenter pour rendre moins bavard !
 
 boolean init_tmp102(TMP102 sensor0){
