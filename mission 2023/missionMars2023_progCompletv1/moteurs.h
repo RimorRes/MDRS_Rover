@@ -4,6 +4,8 @@
 
 #include <Arduino.h>
 
+extern float distanceParcourue;
+
 class Moteur
 {
   public:

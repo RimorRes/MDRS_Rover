@@ -7,8 +7,8 @@
 #if !defined SPECIFICATIONS_H
   #include "specifications.h"
   #define SPECIFICATIONS_H
-#endif 
-extern Rover_config rover_config;
+#endif
+//extern Rover_config rover_config;
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
@@ -24,6 +24,7 @@ extern Rover_config rover_config;
 #define ADAFRUIT_GPS_H
 #endif
 extern Adafruit_GPS GPS;
+extern HardwareSerial GPSSerial;
 extern uint32_t timer;
 #define GPSECHO true // pour que tout soit renvoyé vers la comm série
 /*#if !defined SOFTWARESERIAL_H
@@ -57,8 +58,31 @@ float* miseAJourTampon(float* tab, float valeur){
   return tab;
 }*/
 
+boolean GPS_init(){
+  GPS.begin(9600);  // 4800 serait aussi possible
+  Serial.println("begin");
+    // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+    //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    // uncomment this line to turn on only the "minimum recommended" data
+    GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  Serial.println("RMC only");
+    //GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+  //Serial.println("1Hz");
+    // For the parsing code to work nicely and have time to sort thru the data, and
+    // print it out we don't suggest using anything higher than 1 Hz
+  //
+    // Request updates on antenna status, comment out to keep quiet
+  //  GPS.sendCommand(PGCMD_ANTENNA);
+  //Serial.println("antenna status");
+  //
+  delay(1000);
+  // Ask for firmware version
+  GPSSerial.println(PMTK_Q_RELEASE);
+  return true;
+}
+
 void testGPS(){
-  // gérer la varaible timer, pour l'instant elle est avant loop()
+  // gérer la varaible timer, pour l'instant elle est juste après l'appel du module, dans le fichier principal
   char c = GPS.read();
   // if you want to debug, this is a good time to do it!
 //  if ((c) && (GPSECHO))
@@ -114,7 +138,7 @@ void testGPS(){
 }
 
 // conversion des données latitude/longitude en x/y par rapport au centre du repère sur la carte
-Point convertSphereToPlan(float lat, float lon, Point origine){
+Point convertSphereToPlanGPS(float lat, float lon, Point origine){
   // angles en degrés, valeurs décimales
   // latitude : positive pour le nord, négative pour le sud
   // longitude : positive pour l'est, négative pour l'ouest
@@ -125,12 +149,12 @@ Point convertSphereToPlan(float lat, float lon, Point origine){
   x -= origine.getX();
   return Point(x, y);
 }
-Point convertSphereToPlan(float lat, float lon){
+Point convertSphereToPlanGPS(float lat, float lon){
   return convertSphereToPlan(lat, lon, rover_config.getCentreRepere());
 }
 
 // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
-float convertDegMinSecToDecimal(float deg, float minutes, float sec){
+float convertDegMinSecToDecimalGPS(float deg, float minutes, float sec){
   minutes += sec /60;
   deg += minutes / 60;
   return deg;

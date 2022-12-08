@@ -16,7 +16,7 @@
 /************************************
  * LISTE DES MODULES APPELES
  * deplacement : gère la trajectoire, et ses modifications
- * (gps : conversions de données utiles pour le positionnement)
+ * gps : conversions de données utiles pour le positionnement
  * moteurs : gère les moteurs propulsion
  * servoMoteurs : gère les servomoteurs direction
  * specifications : paramètres chiffrés pour la configuration
@@ -189,12 +189,28 @@ Servo servoAVD, servoAVG, servoARD, servoARG; // les servomoteurs
 #endif
 DirectionServo directionServo = DirectionServo(servoAVD, servoAVG, servoARD, servoARG);  // l'objet pour piloter les servomoteurs
 
+/* GPS */
+#if !defined ADAFRUIT_GPS_H
+#include <Adafruit_GPS.h> // module Adafruit
+#define ADAFRUIT_GPS_H
+#endif
+#if !defined GPS_H
+#include "GPS.h"  // module codé par nous
+#define GPS_H
+#endif
+HardwareSerial GPSSerial = Serial1;
+Adafruit_GPS GPS(&GPSSerial);
+#define GPSECHO false // pour que tout soit renvoyé vers la comm série : à virer ?
+Point positionGPS = rover_config.cheminParDefaut.getPointActuel(); // pour stocker la dernière position GPS connue, ici initialisé n'importe comment
+uint32_t timer = millis();
+
 /******************
   CONTROLE DU ROVER
 *******************/
 /* indicateurs d'état */
 boolean OK_init_Tint, OK_Tint;  // initialisation capteur température interne, état température interne
 boolean OK_init_moteurs;  // initialisation moteurs
+boolean OK_init_GPS;  // initialisation GPS
 boolean OK_alim;  // tension alim
 String msg_alerte = "tout va bien\n";
 boolean goingHome = false; // déclarer extern en tête de déplacement.cpp
@@ -217,6 +233,11 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire tampon comm RF */
 //String messageRF = ""; // initialisé dans RF.cpp
+
+/* mémoire tampon pour le point GPS */
+const int nombrePointsMoyenneGPS = 10;  // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
+float latitudeBuffer[nombrePointsMoyenneGPS];
+float longitudeBuffer[nombrePointsMoyenneGPS];
 
 /* obstacles */
 #if !defined OBSTACLE_H
@@ -292,6 +313,15 @@ void setup()
   radio.stopListening();              // Arrêt de l'écoute du NRF24 (signifiant qu'on va émettre, et non recevoir, ici)
 #ifdef AFFICHAGE
   Serial.println("fin de l'initialisation de l'antenne RF");
+#endif
+
+  // initialisation du GPS
+  OK_init_GPS = GPS_init(); // contient une attente de 1000 ms
+  if (!OK_init_GPS) { // impossible avec le code actuel
+    msg_alerte.concat("problème d'initialisation du GPS\n");
+  }
+#ifdef AFFICHAGE
+  Serial.println("fin de l'initialisation du GPS");
 #endif
 
   // initialisation du chemin à suivre
@@ -376,6 +406,19 @@ if (OK_init_Tint) {
   Serial.println("fin du message");Serial.println(" ");
 #endif
 
+  testGPS();
+  
+  // déplacement
+  // -----------
+  //chemin.setPointFin(Point(20,-5));
+  //positionGPS = pointGPS_carte(); // mise à jour de la position GPS, en mètres, relative au centre de la carte
+  //  Serial.println(positionGPS.affichage());
+  //  Serial.println(chemin.getPointParNumero(1).affichage());
+  chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin
+  //chemin.recalculer();  // à décommenter si on veut un recalcul systématique des points intermédiaires du chemin : plus robuste et plus long
+  String chaineOrdresMarche = chemin.goToNext();  // génère les ordres de marche pour atteindre le point intermédiaire suivant
+  //  Serial.println(chaineOrdresMarche);
+  RunChaineOrdres(chaineOrdresMarche);  // exécution des ordres de marche
   messageRF += "Hello world !";
   String monOrdre ="";
   monOrdre += "1_"; monOrdre += messageRF; monOrdre += ";";
@@ -385,9 +428,9 @@ if (OK_init_Tint) {
   delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 } // FIN DE LOOP()
 
-void serialEvent() { // appelé automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
+/*void serialEvent() { // appelé automatiquement par Arduino en fin de loop() s'il y a du nouveau sur le bus série
   return;
-} // FIN DE serialEvent()
+} // FIN DE serialEvent()*/
 
 /********************************
   GESTION DES SEQUENCES D'ORDRES

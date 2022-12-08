@@ -20,9 +20,6 @@
   #include "specifications.h"
   #define SPECIFICATIONS_H
 #endif 
-extern PIN_spec myPINs;
-extern Rover_spec rover_spec;
-extern Rover_config rover_config;
 #if !defined SERVO_H
   #include <Servo.h>
   #define SERVO_H
