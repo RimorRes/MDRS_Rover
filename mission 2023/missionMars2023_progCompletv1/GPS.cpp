@@ -169,3 +169,39 @@ Point pointGPS_absolu(){
 Point pointGPS_carte(){
   return convertSphereToPlan(gps.latitude, gps.longitude, getCentreRepere());
 }*/
+
+Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int nombrePointsMoyenneGPS){
+  float latitudeMoy = 0;
+  for (int i=0;i=nombrePointsMoyenneGPS;i++){
+    latitudeMoy += latitudeBuffer[i];
+  }
+  latitudeMoy /= nombrePointsMoyenneGPS;
+  float longitudeMoy = 0;
+  for (int i=0;i=nombrePointsMoyenneGPS;i++){
+    longitudeMoy += longitudeBuffer[i];
+  }
+  longitudeMoy /= nombrePointsMoyenneGPS;
+  Point pointActuel = convertSphereToPlanGPS(latitudeMoy, longitudeMoy);
+  return pointActuel;
+}
+
+float* positionGPSNouvelle(){
+  float positionGPSNouvelle[2] = {0,0};
+  char c = GPS.read();
+  if (GPSECHO)
+  if (GPS.newNMEAreceived()) {
+    if (!GPS.parse(GPS.lastNMEA())){   // this also sets the newNMEAreceived() flag to false
+      return;  // we can fail to parse a sentence in which case we should just wait for another
+    }
+  }
+
+  if (millis() - timer > 2000) {
+    timer = millis(); // reset the timer
+
+    if (GPS.fix) {
+      positionGPSNouvelle[0] = GPS.latitude;
+      positionGPSNouvelle[1] = GPS.longitude;
+    }
+  }
+  return positionGPSNouvelle; // retourne donc {0,0} s'il n'a pas pu localiser
+}

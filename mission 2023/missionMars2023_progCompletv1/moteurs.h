@@ -5,6 +5,7 @@
 #include <Arduino.h>
 
 extern float distanceParcourue;
+extern float directionRover;
 
 class Moteur
 {

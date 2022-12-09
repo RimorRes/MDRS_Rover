@@ -245,7 +245,7 @@ float longitudeBuffer[nombrePointsMoyenneGPS];
 #define OBSTACLE_H
 #endif
 Obstacle obstacles; // liste des obstacles rencontrés par le rover
-float distanceParcourue = 0;  // distance parcourue par le rover depuis le début de la mission   <----------------------- initialiser à 0 ? programmer son implémentation
+float distanceParcourue = 0;  // distance parcourue par le rover depuis le début de la mission
 
 /*******************************************************************************
             SETUP()
@@ -361,6 +361,23 @@ void setup()
 
 void loop()
 {
+  // actualisation position
+  // ----------------------
+
+  //  Serial.println(positionGPS.affichage());
+  //  Serial.println(chemin.getPointParNumero(1).affichage());
+  float positionNouvelle[2] = {0,0};
+  positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
+  float latitudeNouvelle = positionNouvelle[0];
+  float longutudeNouvelle = positionNouvelle[1];
+  latitudeBuffer = actualiserBuffer(latitudeBuffer, latitudeNouvelle);
+  longitudeBuffer = actualiserBuffer(longitudeBuffer, longitudeNouvelle);
+  positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer, nombrePointsMoyenneGPS);
+  chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin
+  //chemin.recalculer();  // à décommenter si on veut un recalcul systématique des points intermédiaires du chemin : plus robuste et plus long
+
+  
+  
   // tests
   // -----
 
@@ -384,10 +401,10 @@ if (OK_init_Tint) {
 #endif
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
     //messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
-    Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover); // <----------------- remplacer Point(0,0) par position actuelle
-    P.setDistanceDeDetection(distanceParcourue);  //  <----- pas fonctionnel à cause distanceParcourue pas fonctionnelle
+    Point P = obstacles.obstaclePositionFromRover(chemin.getPointActuel(), rover_config.distanceMin, directionRover);
+    P.setDistanceDeDetection(distanceParcourue);
     obstacles.addObstacle(P, rover_config.distanceMin);
-    chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
+    chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));
   }
 
 /*  // test tension alimentation
@@ -409,12 +426,6 @@ if (OK_init_Tint) {
   
   // déplacement
   // -----------
-  //chemin.setPointFin(Point(20,-5));
-  //positionGPS = pointGPS_carte(); // mise à jour de la position GPS, en mètres, relative au centre de la carte
-  //  Serial.println(positionGPS.affichage());
-  //  Serial.println(chemin.getPointParNumero(1).affichage());
-  chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin
-  //chemin.recalculer();  // à décommenter si on veut un recalcul systématique des points intermédiaires du chemin : plus robuste et plus long
   String chaineOrdresMarche = chemin.goToNext();  // génère les ordres de marche pour atteindre le point intermédiaire suivant
   //  Serial.println(chaineOrdresMarche);
   RunChaineOrdres(chaineOrdresMarche);  // exécution des ordres de marche

@@ -138,6 +138,7 @@ void tournerSurPlace(char sens, int angle){
   moteurAVG.desactiver();
   moteurARD.desactiver();
   moteurARG.desactiver();
+  directionRover += angle;
   return;
 }
 
