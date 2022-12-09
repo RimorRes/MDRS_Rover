@@ -54,7 +54,6 @@ bool Obstacle::isExistingObstacle(Point P, float r_ignore)const{
     if(x * x + y * y <= r_ignore){ return true; }
   }
   return false;
-  //Optimisation future : array bidimentionnel de pointeur de points. Inutile à ce stade.  
 }
 
 void Obstacle::updateObstaclesListe(){
