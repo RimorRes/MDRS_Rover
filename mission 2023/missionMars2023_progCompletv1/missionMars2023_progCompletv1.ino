@@ -244,9 +244,8 @@ float longitudeBuffer[nombrePointsMoyenneGPS];
 #include "obstacle.h"
 #define OBSTACLE_H
 #endif
-Obstacle obstacles;
-
-float distanceParcourue;
+Obstacle obstacles; // liste des obstacles rencontrés par le rover
+float distanceParcourue = 0;  // distance parcourue par le rover depuis le début de la mission   <----------------------- initialiser à 0 ? programmer son implémentation
 
 /*******************************************************************************
             SETUP()
@@ -384,21 +383,21 @@ if (OK_init_Tint) {
     Serial.println(" cm");*/
 #endif
   if (dist_1 < rover_config.distanceMin) { // obstacle trop proche (en m)
-    messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
-    Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover);
-    P.setDistanceDeDetection(distanceParcourue);
+    //messageRF += "5_" + String(dist_1) + ";";  // transmission de la distance, même sans requête
+    Point P = obstacles.obstaclePositionFromRover(Point(0, 0), rover_config.distanceMin, directionRover); // <----------------- remplacer Point(0,0) par position actuelle
+    P.setDistanceDeDetection(distanceParcourue);  //  <----- pas fonctionnel à cause distanceParcourue pas fonctionnelle
     obstacles.addObstacle(P, rover_config.distanceMin);
     chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));// directionRover compile mais pas fonctionnel
   }
 
-  // test tension alimentation
+/*  // test tension alimentation
   float tension = getTensionAlim();
   //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
   if (tension < rover_config.tensionCodeMin) {
     msg_alerte += "tension d'alimentation anormalement basse\n";
   } else if (tension > rover_config.tensionCodeMax) {
     msg_alerte += "tension d'alimentation anormalement haute\n";
-  }
+  }*/
 
 #ifdef AFFICHAGE
   Serial.println("Voici le message d'alerte : ");
@@ -406,7 +405,7 @@ if (OK_init_Tint) {
   Serial.println("fin du message");Serial.println(" ");
 #endif
 
-  testGPS();
+  testGPS();  // ceci n'est pas un test à faire à chaque cycle, mais un intermédiaire pour tester le bon fonctionnement du GPS
   
   // déplacement
   // -----------
@@ -424,6 +423,7 @@ if (OK_init_Tint) {
   monOrdre += "1_"; monOrdre += messageRF; monOrdre += ";";
   Run(monOrdre);
   messageRF ="";
+  obstacles.updateObstaclesListe();
 
   delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 } // FIN DE LOOP()
