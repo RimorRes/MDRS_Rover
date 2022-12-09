@@ -366,8 +366,7 @@ void loop()
 
   //  Serial.println(positionGPS.affichage());
   //  Serial.println(chemin.getPointParNumero(1).affichage());
-  float positionNouvelle[2] = {0,0};
-  positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
+  float *positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
   float latitudeNouvelle = positionNouvelle[0];
   float longutudeNouvelle = positionNouvelle[1];
   latitudeBuffer = actualiserBuffer(latitudeBuffer, latitudeNouvelle);
