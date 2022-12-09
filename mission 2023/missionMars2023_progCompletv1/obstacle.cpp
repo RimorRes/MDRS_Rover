@@ -28,17 +28,18 @@ Point Obstacle::obstaclePositionFromRover(Point R, float d, float p)const{
 }
 
 void Obstacle::addObstacle(Point P, float r){
-  if(_obstaclesListeLen < _obstaclesListeSize){ //       <-------------------------------------- Que fait-on si on est au-delà de ListeSize ?
-    if(isExistingObstacle(P, r)){ return; } // l'obstacle existe déjà dans ces parages
-    _obstaclesListeLen++;
-    _obstaclesListe[_obstaclesListeLen - 1] = P;
+  if(_obstaclesListeLen >= _obstaclesListeSize){
+    removeObstacle(0);
   }
+  if(isExistingObstacle(P, r)){ return; } // l'obstacle existe déjà dans ces parages
+  _obstaclesListeLen++;
+  _obstaclesListe[_obstaclesListeLen - 1] = P;
 }
 
 void Obstacle::removeObstacle(int n){
   if(_obstaclesListeLen > 0 && n < _obstaclesListeLen){
     for(int i = n; i < _obstaclesListeLen; i++){
-      _obstaclesListe[i] = _obstaclesListe[i + 1];  //      <------------- plutôt i-1 et i ?
+      _obstaclesListe[i-1] = _obstaclesListe[i];
     }
     _obstaclesListeLen--;
   }
