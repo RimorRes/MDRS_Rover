@@ -186,12 +186,12 @@ Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int
 }
 
 float* positionGPSNouvelle(){
-  float positionGPSNouvelle[2] = {0,0};
+  static float positionGPSNouvelle[2] = {0,0};
   char c = GPS.read();
   if (GPSECHO)
   if (GPS.newNMEAreceived()) {
     if (!GPS.parse(GPS.lastNMEA())){   // this also sets the newNMEAreceived() flag to false
-      return;  // we can fail to parse a sentence in which case we should just wait for another
+      return 0;  // we can fail to parse a sentence in which case we should just wait for another
     }
   }
 
