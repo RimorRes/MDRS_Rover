@@ -368,7 +368,7 @@ void loop()
   //  Serial.println(chemin.getPointParNumero(1).affichage());
   float *positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
   float latitudeNouvelle = positionNouvelle[0];
-  float longutudeNouvelle = positionNouvelle[1];
+  float longitudeNouvelle = positionNouvelle[1];
   latitudeBuffer = actualiserBuffer(latitudeBuffer, latitudeNouvelle);
   longitudeBuffer = actualiserBuffer(longitudeBuffer, longitudeNouvelle);
   positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer, nombrePointsMoyenneGPS);
