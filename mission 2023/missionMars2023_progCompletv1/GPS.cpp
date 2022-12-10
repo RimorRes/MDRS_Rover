@@ -171,21 +171,6 @@ Point pointGPS_carte(){
   return convertSphereToPlan(gps.latitude, gps.longitude, getCentreRepere());
 }*/
 
-/*Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int nombrePointsMoyenneGPS){
-  float latitudeMoy = 0;
-  for (int i=0;i=nombrePointsMoyenneGPS;i++){
-    latitudeMoy += latitudeBuffer[i];
-  }
-  latitudeMoy /= nombrePointsMoyenneGPS;
-  float longitudeMoy = 0;
-  for (int i=0;i=nombrePointsMoyenneGPS;i++){
-    longitudeMoy += longitudeBuffer[i];
-  }
-  longitudeMoy /= nombrePointsMoyenneGPS;
-  Point pointActuel = convertSphereToPlanGPS(latitudeMoy, longitudeMoy);
-  return pointActuel;
-}*/
-
 Point calculePositionActuelle(BufferFloat latitudeBuffer, BufferFloat longitudeBuffer){
   return convertSphereToPlanGPS(latitudeBuffer.Mean(), longitudeBuffer.Mean());
 }
@@ -211,18 +196,9 @@ float* positionGPSNouvelle(){
   return positionGPSNouvelle; // retourne donc {0,0} s'il n'a pas pu localiser
 }
 
-/*float* actualiserBuffer(float* oldBuffer, float newData){
-  int taille = sizeof(oldBuffer);
-  if (taille<nombrePointsMoyenneGPS){
-    oldBuffer[taille] = newData;
-  } else {
-    for (int i=0;i<taille-1;i++){
-      oldBuffer[i]=oldBuffer[i+1];
-    }
-    oldBuffer[taille-1] = newData;
-  }
-  return oldBuffer;
-}*/
+/* ------------------
+ * classe BufferFloat 
+ * ------------------*/
 
 BufferFloat::BufferFloat(){
   _size = 0;

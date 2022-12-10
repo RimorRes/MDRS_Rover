@@ -29,7 +29,5 @@ class BufferFloat
     boolean _full;
 };
 
-//Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int nombrePointsMoyenneGPS);
 Point calculePositionActuelle(BufferFloat latitudeBuffer, BufferFloat longitudeBuffer);
 float* positionGPSNouvelle();
-//float* actualiserBuffer(float* oldBuffer, float newData);
