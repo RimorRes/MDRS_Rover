@@ -27,6 +27,7 @@ extern Adafruit_GPS GPS;
 extern HardwareSerial GPSSerial;
 extern uint32_t timer;
 #define GPSECHO true // pour que tout soit renvoyé vers la comm série
+
 /*#if !defined SOFTWARESERIAL_H
 #include <SoftwareSerial.h> // pour simuler la communication série sur des ports non-dédiés
 #define SOFTWARESERIAL_H
@@ -170,7 +171,7 @@ Point pointGPS_carte(){
   return convertSphereToPlan(gps.latitude, gps.longitude, getCentreRepere());
 }*/
 
-Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int nombrePointsMoyenneGPS){
+/*Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int nombrePointsMoyenneGPS){
   float latitudeMoy = 0;
   for (int i=0;i=nombrePointsMoyenneGPS;i++){
     latitudeMoy += latitudeBuffer[i];
@@ -183,6 +184,10 @@ Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int
   longitudeMoy /= nombrePointsMoyenneGPS;
   Point pointActuel = convertSphereToPlanGPS(latitudeMoy, longitudeMoy);
   return pointActuel;
+}*/
+
+Point calculePositionActuelle(BufferFloat latitudeBuffer, BufferFloat longitudeBuffer){
+  return convertSphereToPlanGPS(latitudeBuffer.Mean(), longitudeBuffer.Mean());
 }
 
 float* positionGPSNouvelle(){
@@ -206,7 +211,7 @@ float* positionGPSNouvelle(){
   return positionGPSNouvelle; // retourne donc {0,0} s'il n'a pas pu localiser
 }
 
-float* actualiserBuffer(float* oldBuffer, float newData){
+/*float* actualiserBuffer(float* oldBuffer, float newData){
   int taille = sizeof(oldBuffer);
   if (taille<nombrePointsMoyenneGPS){
     oldBuffer[taille] = newData;
@@ -217,4 +222,38 @@ float* actualiserBuffer(float* oldBuffer, float newData){
     oldBuffer[taille-1] = newData;
   }
   return oldBuffer;
+}*/
+
+BufferFloat::BufferFloat(){
+  _size = 0;
+  _full = false;
+  return;
+}
+
+void BufferFloat::addData(float newData){
+  if (_full){
+    for (int i=0;i<_size-1;i++){
+      _data[i] = _data[i+1];
+    }
+    _data[_size-1] = newData;
+  } else {
+    _data[_size] = newData;
+    _size++;
+    if (_size >= sizeof(_data)) {_full = true;}
+  }
+  return;
+}
+
+/*float BufferFloat::getData(int index) const{
+  if (index<_size) {return _data[index];}
+  return 0;
+}*/
+
+float BufferFloat::Mean() const{
+  float mean = 0;
+  for (int i=0;i<_size;i++){
+    mean += _data[i];
+  }
+  mean /= _size;
+  return mean;
 }

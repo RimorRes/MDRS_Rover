@@ -235,9 +235,12 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 //String messageRF = ""; // initialisé dans RF.cpp
 
 /* mémoire tampon pour le point GPS */
+// #define TAILLE_BUFFER 10 dans GPS.h // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
 const int nombrePointsMoyenneGPS = 10;  // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
-float* latitudeBuffer;
-float* longitudeBuffer;
+//float* latitudeBuffer;
+//float* longitudeBuffer;
+BufferFloat latitudeBuffer;
+BufferFloat longitudeBuffer;
 
 /* obstacles */
 #if !defined OBSTACLE_H
@@ -369,9 +372,12 @@ void loop()
   float *positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
   float latitudeNouvelle = positionNouvelle[0];
   float longitudeNouvelle = positionNouvelle[1];
-  latitudeBuffer = actualiserBuffer(latitudeBuffer, latitudeNouvelle);
-  longitudeBuffer = actualiserBuffer(longitudeBuffer, longitudeNouvelle);
-  positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer, nombrePointsMoyenneGPS);
+  //latitudeBuffer = actualiserBuffer(latitudeBuffer, latitudeNouvelle);
+  //longitudeBuffer = actualiserBuffer(longitudeBuffer, longitudeNouvelle);
+  //positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer, nombrePointsMoyenneGPS);
+  latitudeBuffer.addData(latitudeNouvelle);
+  longitudeBuffer.addData(longitudeNouvelle);
+  positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer);
   chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin
   //chemin.recalculer();  // à décommenter si on veut un recalcul systématique des points intermédiaires du chemin : plus robuste et plus long
 
