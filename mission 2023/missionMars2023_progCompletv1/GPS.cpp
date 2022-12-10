@@ -186,14 +186,14 @@ Point calculePositionActuelle(float *latitudeBuffer, float *longitudeBuffer, int
 }
 
 float* positionGPSNouvelle(){
-  static float positionGPSNouvelle[2] = {0,0};
+  static float positionGPSNouvelle[2] = {0,0};  // si on le retourne tel quel, ce sera interprété comme "pas de nouveau point GPS"
   char c = GPS.read();
-  if (GPSECHO)
+  //if (GPSECHO) // inutile, je crois
   if (GPS.newNMEAreceived()) {
     if (!GPS.parse(GPS.lastNMEA())){   // this also sets the newNMEAreceived() flag to false
-      return 0;  // we can fail to parse a sentence in which case we should just wait for another
+      return positionGPSNouvelle;  // we can fail to parse a sentence in which case we should just wait for another
     }
-  }
+  } // ajouter "else {return positionGPSNouvelle;}" ?
 
   if (millis() - timer > 2000) {
     timer = millis(); // reset the timer
@@ -204,4 +204,17 @@ float* positionGPSNouvelle(){
     }
   }
   return positionGPSNouvelle; // retourne donc {0,0} s'il n'a pas pu localiser
+}
+
+float* actualiserBuffer(float* oldBuffer, float newData){
+  int taille = sizeof(oldBuffer);
+  if (taille<nombrePointsMoyenneGPS){
+    oldBuffer[taille] = newData;
+  } else {
+    for (int i=0;i<taille-1;i++){
+      oldBuffer[i]=oldBuffer[i+1];
+    }
+    oldBuffer[taille-1] = newData;
+  }
+  return oldBuffer;
 }

@@ -236,8 +236,8 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire tampon pour le point GPS */
 const int nombrePointsMoyenneGPS = 10;  // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
-float latitudeBuffer[nombrePointsMoyenneGPS];
-float longitudeBuffer[nombrePointsMoyenneGPS];
+float* latitudeBuffer;
+float* longitudeBuffer;
 
 /* obstacles */
 #if !defined OBSTACLE_H
