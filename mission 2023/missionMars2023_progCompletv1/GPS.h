@@ -6,9 +6,7 @@
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
-#endif 
-extern const int nombrePointsMoyenneGPS;
-#define TAILLE_BUFFER 10 // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
+#endif
 
 boolean GPS_init();
 void testGPS();
@@ -19,14 +17,14 @@ float convertDegMinSecToDecimalGPS(float deg, float minutes, float sec);  // con
 class BufferFloat
 {
   public:
-    BufferFloat();
     void addData(float newData);
     //float getData(int index) const;
     float Mean() const;
   private:
-    int _size;
-    float _data[TAILLE_BUFFER];
-    boolean _full;
+    int _dataPtr = 0;
+    int _size = 0;
+    float _data[10];
+    const int _nombrePointsMoyenneGPS = 10; // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
 };
 
 Point calculePositionActuelle(BufferFloat latitudeBuffer, BufferFloat longitudeBuffer);

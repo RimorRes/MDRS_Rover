@@ -236,7 +236,6 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 
 /* mémoire tampon pour le point GPS */
 // #define TAILLE_BUFFER 10 dans GPS.h // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
-const int nombrePointsMoyenneGPS = 10;  // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
 //float* latitudeBuffer;
 //float* longitudeBuffer;
 BufferFloat latitudeBuffer;

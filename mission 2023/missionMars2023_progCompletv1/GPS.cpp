@@ -200,24 +200,14 @@ float* positionGPSNouvelle(){
  * classe BufferFloat 
  * ------------------*/
 
-BufferFloat::BufferFloat(){
-  _size = 0;
-  _full = false;
-  return;
-}
-
 void BufferFloat::addData(float newData){
-  if (_full){
-    for (int i=0;i<_size-1;i++){
-      _data[i] = _data[i+1];
-    }
-    _data[_size-1] = newData;
-  } else {
-    _data[_size] = newData;
-    _size++;
-    if (_size >= sizeof(_data)) {_full = true;}
+  if(_size < _nombrePointsMoyenneGPS){
+    _data[_size++] = newData;
   }
-  return;
+  else{
+    _data[_dataPtr++] = newData;
+    if(_dataPtr == _nombrePointsMoyenneGPS){_dataPtr = 0;}
+  }
 }
 
 /*float BufferFloat::getData(int index) const{

@@ -38,10 +38,7 @@ void Obstacle::addObstacle(Point P, float r){
 
 void Obstacle::removeObstacle(int n){
   if(_obstaclesListeLen > 0 && n < _obstaclesListeLen){
-    for(int i = n; i < _obstaclesListeLen; i++){
-      _obstaclesListe[i-1] = _obstaclesListe[i];
-    }
-    _obstaclesListeLen--;
+    _obstaclesListe[n] = _obstaclesListe[--_obstaclesListeLen];
   }
 }
 
