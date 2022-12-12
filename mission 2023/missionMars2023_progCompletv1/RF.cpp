@@ -13,12 +13,14 @@ boolean emettreMessage(String message){
   int nbrPhrases = int(message.length() / nbrCaracteresMax) +1;
   String phrase;
   for (int i=0;i<nbrPhrases;i++){
-    phrase = message;
+    phrase = message; // ligne inutile, je crois
     int nbrCaracteres = min(nbrCaracteresMax, message.length());
-    Serial.println("début : " + message + " nbr = " + String(nbrCaracteres));
     phrase = message.substring(0, nbrCaracteres); // on extrait la phrase à émettre
     phrase.concat('\n');
+#ifdef AFFICHAGE
+    Serial.println("début : " + message + " nbr = " + String(nbrCaracteres));
     Serial.println("   phrase : " + phrase);
+#endif
     message = message.substring(nbrCaracteres); // et on l'enlève du message
     char msg[phrase.length()];     // Message à transmettre à l'autre NRF24 (32 caractères maxi, avec cette librairie)
     phrase.toCharArray(msg, sizeof(msg)); // mise en forme : tableau de caractères

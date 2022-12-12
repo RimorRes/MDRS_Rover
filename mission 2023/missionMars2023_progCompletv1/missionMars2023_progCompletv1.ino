@@ -214,6 +214,7 @@ boolean OK_init_GPS;  // initialisation GPS
 boolean OK_alim;  // tension alim
 String msg_alerte = "tout va bien\n";
 boolean goingHome = false; // déclarer extern en tête de déplacement.cpp
+boolean veille = false;
 
 /* déplacements */
 #if !defined DEPLACEMENT_H
@@ -235,9 +236,6 @@ String cheminSuivi = ""; // déclarer extern en tête de déplacement.cpp
 //String messageRF = ""; // initialisé dans RF.cpp
 
 /* mémoire tampon pour le point GPS */
-// #define TAILLE_BUFFER 10 dans GPS.h // le nombre de points GPS sur lesquels on moyenne (moyenne glissante)
-//float* latitudeBuffer;
-//float* longitudeBuffer;
 BufferFloat latitudeBuffer;
 BufferFloat longitudeBuffer;
 
@@ -363,6 +361,12 @@ void setup()
 
 void loop()
 {
+  // réception RF
+  // ------------
+  
+  // if(j'ai reçu quelque chose) {veille = false;}
+  if(veille){return;}
+  
   // actualisation position
   // ----------------------
 
@@ -482,7 +486,19 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
 
     switch (numFonction) { // cf dico des instructions
       case 0: // code d'urgence
-        goHome();  // retour base
+        switch (arguments[0].toInt()) {
+          case 0: // arrête tout, tout de suite
+            while(true){  // tout s'arrête sauf cette boucle
+              for (int i=0; i= 6; i++){delay(1000*10);} // attend une minute
+              messageRF = "1_2;"; // "Je suis coincé, viens me chercher."
+              emettreMessage(messageRF);  // envoie le SOS.
+            }
+          case 1: // entre en mode veille
+            for (int i=0; i= 6; i++){delay(1000*10);} // attend une minute
+            veille = true;  // tout sera shinté sauf la réception RF (jusqu'à réception RF non nulle) y compris les ordres déjà en mémoire et non exécutés
+          case 2:
+            goHome();  // retour base
+        }
         break;
       case 1: // requête de transmission d'un message via l'antenne
         emettreMessage(arguments[0]);
@@ -567,6 +583,7 @@ void RunChaineOrdres(String INSTRUCTIONS) {
     Serial.println(INSTRUCTIONS);
 #endif
     Run(ordre);
+    if(veille){return;}
   }
   return;
 }
