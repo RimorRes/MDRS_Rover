@@ -139,23 +139,22 @@ void testGPS(){
 }
 
 // conversion des données latitude/longitude en x/y par rapport au centre du repère sur la carte
-Point convertSphereToPlanGPS(float lat, float lon, Point origine){
+Point convertSphereToPlan(float lat, float lon, Point origine){
   // angles en degrés, valeurs décimales
   // latitude : positive pour le nord, négative pour le sud
   // longitude : positive pour l'est, négative pour l'ouest
-  const long RayonTerreEnMetres = 6370000;
-  float y = lat / 360 * 2 * 3.141592654 * RayonTerreEnMetres;
-  y -= origine.getY();
-  float x = lon / 360 * 2 * 3.141592654 * RayonTerreEnMetres * cos(lat);
-  x -= origine.getX();
+  const long RayonTerreEnMetres = 6378137;
+  float y = lat / 180 * 3.141592654 * RayonTerreEnMetres - origine.getY();
+  float x = lon / 180 * 3.141592654 * RayonTerreEnMetres * cos(lat) - origine.getX();
   return Point(x, y);
 }
-Point convertSphereToPlanGPS(float lat, float lon){
+
+Point convertSphereToPlan(float lat, float lon){
   return convertSphereToPlan(lat, lon, rover_config.getCentreRepere());
 }
 
 // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
-float convertDegMinSecToDecimalGPS(float deg, float minutes, float sec){
+float convertDegMinSecToDecimal(float deg, float minutes, float sec){
   minutes += sec /60;
   deg += minutes / 60;
   return deg;
@@ -172,7 +171,7 @@ Point pointGPS_carte(){
 }*/
 
 Point calculePositionActuelle(BufferFloat latitudeBuffer, BufferFloat longitudeBuffer){
-  return convertSphereToPlanGPS(latitudeBuffer.Mean(), longitudeBuffer.Mean());
+  return convertSphereToPlan(latitudeBuffer.Mean(), longitudeBuffer.Mean());
 }
 
 float* positionGPSNouvelle(){

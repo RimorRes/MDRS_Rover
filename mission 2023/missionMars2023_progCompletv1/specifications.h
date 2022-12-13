@@ -2,10 +2,11 @@
 #if !defined DEPLACEMENT_H
   #include "deplacement.h"
   #define DEPLACEMENT_H
-#endif 
-
-float convertDegMinSecToDecimal(float deg, float minutes, float sec);  // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
-Point convertSphereToPlan(float lat, float lon, Point origine); // conversion des données latitude/longitude en x/y par rapport au centre du repère sur la carte
+#endif
+#if !defined GPS_H
+  #include "GPS.h"
+  #define GPS_H
+#endif
 
 class PIN_spec
 {
