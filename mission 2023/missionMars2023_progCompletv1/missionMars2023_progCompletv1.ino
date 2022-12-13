@@ -247,6 +247,10 @@ BufferFloat longitudeBuffer;
 Obstacle obstacles; // liste des obstacles rencontrés par le rover
 float distanceParcourue = 0;  // distance parcourue par le rover depuis le début de la mission
 
+/* données des capteurs */
+//  Je ne sais pas trop quoi coder. Pour l'instant, ce serait de l'instantané.
+float sensorData[5];  // pour plus de données : modifier aussi la fonction run() case 6
+
 /*******************************************************************************
             SETUP()
 ********************************************************************************/
@@ -432,6 +436,15 @@ if (OK_init_Tint) {
   messageRF ="";
   obstacles.updateObstaclesListe();
 
+  // mise à jour des données capteur
+  // -------------------------------
+  // à coder...
+  sensorData[0]=0;
+  sensorData[1]=0;
+  sensorData[2]=0;
+  sensorData[3]=0;
+  sensorData[4]=0;
+  
   delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 } // FIN DE LOOP()
 
@@ -485,87 +498,142 @@ void Run(String INSTRUCTION) { // Reads the instruction to call it after.
     }
 
     switch (numFonction) { // cf dico des instructions
-      case 0: // code d'urgence
+      case 0: {// code d'urgence
         switch (arguments[0].toInt()) {
-          case 0: // arrête tout, tout de suite
+          case 0: {// arrête tout, tout de suite
             while(true){  // tout s'arrête sauf cette boucle
               for (int i=0; i= 6; i++){delay(1000*10);} // attend une minute
               messageRF = "1_2;"; // "Je suis coincé, viens me chercher."
               emettreMessage(messageRF);  // envoie le SOS.
             }
-          case 1: // entre en mode veille
+          }
+          case 1: {// entre en mode veille
             for (int i=0; i= 6; i++){delay(1000*10);} // attend une minute
             veille = true;  // tout sera shinté sauf la réception RF (jusqu'à réception RF non nulle) y compris les ordres déjà en mémoire et non exécutés
-          case 2:
+          }
+          case 2:{
             goHome();  // retour base
+          }
         }
         break;
-      case 1: // requête de transmission d'un message via l'antenne
+      }
+      case 1: {// requête (interne) de transmission d'un message via l'antenne
         emettreMessage(arguments[0]);
         break;
-      case 3: // requête de transmission du bilan d'activité du rover
+      }
+      case 2: {// requête de transmission du bilan d'activité du rover
         // attention, ça peut être long.
         switch (arguments[0].toInt()) {
-          case 1: // demande de transmission des messages d'alerte
-            messageRF += "3_1_" + msg_alerte + ";"; break;
+          case 1: {// demande de transmission des messages d'alerte
+            messageRF += "2_1_" + msg_alerte + ";"; break;
+          }
           case 2: {// demande de transmission de la succession des ordres de marche
-              String texte = successionOrdresMarche;
-              texte.replace(";", "\n");
-              messageRF += "3_2_" + texte + ";"; break;
-            }
+            String texte = successionOrdresMarche;
+            texte.replace(";", "\n");
+            messageRF += "2_2_" + texte + ";"; break;
+          }
           case 3: {// demande de transmission de l'historique du chemin suivi
-              String texte = cheminSuivi;
-              texte.replace(";", "\n");
-              messageRF += "3_3_" + texte + ";"; break;
-            }
+            String texte = cheminSuivi;
+            texte.replace(";", "\n");
+            messageRF += "2_3_" + texte + ";"; break;
+          }
           default:
             break;
         }
         break;
-      case 6: {// requête de transmission des données des capteurs pour la cartographie
+      }
+      case 3: {// requête sur la localisation
+        switch (arguments[0].toInt()) {
+          case 0: {// demande de transmission de la position actuelle
+            String message = "3_";
+            message += chemin.getPointActuel().toString();  // contient X_Y; (avec le ";" final)
+            messageRF += message;
+            break;
+          }
+          case 1: {// demande de changement du point cible
+            float X = arguments[1].toFloat();
+            float Y = arguments[2].toFloat();
+            Point pointCible(X, Y);
+            chemin.addPoint(chemin.getNumeroPointActuel(), pointCible);
+            messageRF += "0_0_0;";
+          }
+        }
+        break;
+      }
+      case 4: {// requête sur l'orientation du rover
+        switch (arguments[0].toInt()) {
+          case 0: {// demande de transmission de l'orientation actuelle
+            String message = "4_";
+            message += String(int(directionRover));
+            messageRF += message + ";";
+            break;
+          }
+          case 1: {// demande de changement de l'orientation du rover
+            int angleDemande = arguments[1].toInt();
+            int angleRotation = angleDemande - int(directionRover);
+            angleRotation += 180; angleRotation %= 360; angleRotation -= 180; // pour rester entre -180 et +180
+            String ordre;
+            if (angleRotation < 0) {
+              ordre ="14_" + String(-angleRotation) + ";";
+            } else {
+              ordre ="13_" + String(angleRotation) + ";";
+            }
+            Run(ordre);
+            messageRF += "0_0_0;";
+          }
+        }
+        break;
+      }
+      case 6: {// requête de transmission des données des capteurs
           String message = "6_";
-          message += String(read_temperature(sensorTinterne));  // température, en degrés, décimal avec un point
-          message += String("");  // pression, unité ?, décimal avec un point
-          message += String("");  // vitesse vent (norme du vecteur), unité ?, décimal avec un point
-          message += String("");  // angle horizontal direction vent, en degrés ? par rapport à [Ox) sens trigo ?, décimal avec un point
+          message += String(sensorData[0]); // données capteur 1
+          message += String(sensorData[1]); // données capteur 2
+          message += String(sensorData[2]); // données capteur 3
+          message += String(sensorData[3]); // données capteur 4
+          message += String(sensorData[4]); // données capteur 5
           messageRF += message + ";";
           break;
-        }
-      case 11:  // ordre de marche : avancer
+      }
+      case 11: { // ordre de marche : avancer
         successionOrdresMarche += INSTRUCTION + ";";
         directionServo.positionNormale();
         delay(1500);  // pour que les servos aient le temps de finir de tourner
         avancerTous(1, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
         break;
-      case 12:  // ordre de marche : reculer
+      }
+      case 12: { // ordre de marche : reculer
         successionOrdresMarche += INSTRUCTION + ";";
         directionServo.positionNormale();
         delay(1500);  // pour que les servos aient le temps de finir de tourner
         avancerTous(2, arguments[0].toFloat()); // arguments[0].toFloat() est la distance en mètres
         break;
-      case 13:  // ordre de marche : tourner à droite
+      }
+      case 13: { // ordre de marche : tourner à droite
         successionOrdresMarche += INSTRUCTION + ";";
         directionServo.positionSurPlace();
         delay(1500);  // pour que les servos aient le temps de finir de tourner
         tournerSurPlace('D', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
         //directionServo.positionNormale();
         break;
-      case 14:  // ordre de marche : tourner à gauche
+      }
+      case 14: { // ordre de marche : tourner à gauche
         successionOrdresMarche += INSTRUCTION + ";";
         directionServo.positionSurPlace();
         delay(1500);  // pour que les servos aient le temps de finir de tourner
         tournerSurPlace('G', arguments[0].toFloat()); // arguments[0].toFloat() est l'angle en degrés
         //directionServo.positionNormale();
         break;
+      }
         // ce qui suit est à but de test
-      default: // Case of unmatched function.
+      default: { // Case of unmatched function.
 #ifdef AFFICHAGE
         Serial.println("Ca serait gentil de me donner des instructions que je comprends !");
 #endif
         return; // Panic. Something better to do ?
+      }
     } // fin du  : switch(numFonction)
   } // fin du : if (INSTRUCTION != "")
-}
+} // fin du Run()
 
 // la même pour le cas où il peut y avoir plusieurs instructions à la chaîne
 void RunChaineOrdres(String INSTRUCTIONS) {
