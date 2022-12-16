@@ -206,7 +206,7 @@ String Chemin::goToNext(){
     }
   } else {
     directionCible = atan(deltaY / deltaX); // en radians
-    directionCible *= 180 / 3.141592654;  // en degrés
+    directionCible *= 180 / PI;  // en degrés
     if (deltaX < 0) {
       if (directionCible > 0) {directionCible -= 180;} else {directionCible += 180;}
     }  // valeur entre -180 et 180 degrés

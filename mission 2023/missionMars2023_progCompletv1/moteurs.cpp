@@ -70,7 +70,7 @@ void Moteur::avancer_t(int sens, float tours){
   activer(sens);
   delay(tours_delaytime);
   desactiver();
-  distanceParcourue += tours * 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  distanceParcourue += tours * PI * 2 * rover_spec.rayonExterneRoueEnMetres;
   //Serial.println("Avancer tours END");
 }
 
@@ -79,7 +79,7 @@ void Moteur::avancer_m(int sens, float m){
 //  Serial.println("Avancer metres START");
   //le diamètre des roues est de 17.5cm donc la circonférence est de 55cm soit 0.55m
   //afin de convertir les mètres en tours, on multiplie les mètres par 1/0.55 soit 1.82
-  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float perimetre = PI * 2 * rover_spec.rayonExterneRoueEnMetres;
   float tours = m / perimetre;
   avancer_t(sens, tours);
 //  Serial.println("Avancer metres END");
@@ -88,7 +88,7 @@ void Moteur::avancer_m(int sens, float m){
 // faire avancer tous les moteurs, dans le sens <sens> du nombre de mètres <m>
 void avancerTous(int sens, float m){
   // on doit paramétrer de sorte que sens = 1 fasse avancer et sens = 2 fasse reculer, à causde de la fonction tournerSurPlace()
-  float perimetre = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float perimetre = PI * 2 * rover_spec.rayonExterneRoueEnMetres;
   float tours = m / perimetre;
   float delayTime = getDelayTime();
   float tours_delaytime = delayTime * tours;
@@ -109,11 +109,11 @@ void avancerTous(int sens, float m){
 void tournerSurPlace(char sens, int angle){
   // sens vaut 'D' ou 'G'
   // si les PINs sont tels que sens = 1 pour un moteur le fasse avancer, et sens = 2 le fasse reculer.
-  float perimetreSurPlace = 3.141592654 * 2 * rover_spec.rayonSurPlaceEnMetres;
+  float perimetreSurPlace = PI * 2 * rover_spec.rayonSurPlaceEnMetres;
 //  Serial.println(perimetreSurPlace);
   float m = angle / 360. * perimetreSurPlace;
 //  Serial.println(m);
-  float perimetreRoue = 3.141592654 * 2 * rover_spec.rayonExterneRoueEnMetres;
+  float perimetreRoue = PI * 2 * rover_spec.rayonExterneRoueEnMetres;
   float tours = m / perimetreRoue;
 //  Serial.println(tours);
   float delayTime = getDelayTime()*rover_spec.numeroMagique2;

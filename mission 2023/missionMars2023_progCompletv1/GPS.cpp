@@ -144,8 +144,8 @@ Point convertSphereToPlan(float lat, float lon, Point origine){
   // latitude : positive pour le nord, négative pour le sud
   // longitude : positive pour l'est, négative pour l'ouest
   const long RayonTerreEnMetres = 6378137;
-  float y = lat / 180 * 3.141592654 * RayonTerreEnMetres - origine.getY();
-  float x = lon / 180 * 3.141592654 * RayonTerreEnMetres * cos(lat) - origine.getX();
+  float y = ( lat - origine.getX() ) / 180 * PI * RayonTerreEnMetres;
+  float x = ( lon - origine.getY() ) / 180 * PI * RayonTerreEnMetres * cos(lat);
   return Point(x, y);
 }
 
@@ -155,7 +155,7 @@ Point convertSphereToPlan(float lat, float lon){
 
 // conversion des données angulaires degrés/minutes/secondes en degrés valeur décimale
 float convertDegMinSecToDecimal(float deg, float minutes, float sec){
-  minutes += sec /60;
+  minutes += sec / 60;
   deg += minutes / 60;
   return deg;
 }
