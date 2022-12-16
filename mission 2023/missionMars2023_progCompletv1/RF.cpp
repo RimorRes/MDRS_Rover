@@ -5,8 +5,10 @@
 //#define AFFICHAGE // à commenter pour rendre moins bavard...
 #include <Arduino.h>
 #include <RF24.h>
-String messageRF = "";
-extern RF24 radio;
+#if !defined RF_H
+#include "RF.h"  // module codé par nous
+#define RF_H
+#endif
 
 boolean emettreMessage(String message){
   int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
@@ -27,4 +29,42 @@ boolean emettreMessage(String message){
     radio.write(&msg, sizeof(msg));     // Envoi de notre message 
     //Serial.write(msg, sizeof(msg));
   }
+}
+
+String RFpull(){
+//  A CODER
+  return "";
+}
+
+void RFpush(String phrase){
+//  A CODER
+  return;
+}
+
+String recupererMessageRF(){
+  int nbrCaractereMax = 31; // identique emettreMessage()
+  String phrase = "";
+  String message = "";
+//  A CODER
+  return message;
+}
+
+String ecouterAntenneRF(){
+  int dureeAttente = 1000;  // en millisecondes
+  int TIMEOUT = 1000; // durée max de surveillance de l'antenne
+  String reception = RFpull();  // écoute
+  if (reception =="A"){ // vérifier que le message commence par "A" permet d'éviter de transmettre de mauvaise instructions si le début du message s'est perdu
+    // la fin du message n'est pas vérifiée, ce qui est un défaut.
+    RFpush("R");  // on répond qu'on est prêt
+    delay(dureeAttente);
+    //Serial.setTimeout(TIMEOUT); // le temps au bout duquel on arrête de surveiller le bus
+    //while (Serial.available()){ // tant que le bus n'est pas vide...
+      //reception = serialPull(); // on lit une instruction
+      //Run(reception); // et on exécute l'instruction
+    //} // le bus est vide
+  } // si ça ne commençait pas par "A" on n'a rien fait
+  //return;
+
+  String messageRF = recupererMessageRF();
+  return messageRF;
 }

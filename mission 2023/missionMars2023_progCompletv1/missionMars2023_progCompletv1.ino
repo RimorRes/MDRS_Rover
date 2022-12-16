@@ -164,8 +164,11 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo
 #define tunnel  "PIPE1"       // On définit un "nom de tunnel" (5 caractères), pour pouvoir communiquer d'un NRF24 à l'autre
 RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01 // déclarer extern en tête de RF.cpp
 const byte adresseAntenne[6] = tunnel;              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
-#include "RF.h"
-// variable globale : String messageRF
+#if !defined RF_H
+#include "RF.h"  // module codé par nous
+#define RF_H
+#endif
+String messageRF ="";
 
 /* moteurs (propulsion) */
 #if !defined MOTEURS_H
