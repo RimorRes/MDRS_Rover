@@ -1,49 +1,55 @@
-/*
-   ______               _                  _///  _           _                   _
-  /   _  \             (_)                |  __\| |         | |                 (_)
-  |  [_|  |__  ___  ___ _  ___  _ __      | |__ | | ___  ___| |_ _ __ ___  _ __  _  ___  _   _  ___
-  |   ___/ _ \| __|| __| |/ _ \| '_ \_____|  __|| |/ _ \/  _|  _| '__/   \| '_ \| |/   \| | | |/ _ \
-  |  |  | ( ) |__ ||__ | | ( ) | | | |____| |__ | |  __/| (_| |_| | | (_) | | | | | (_) | |_| |  __/
-  \__|   \__,_|___||___|_|\___/|_| [_|    \____/|_|\___|\____\__\_|  \___/|_| |_|_|\__  |\__,_|\___|
-                                                                                      | |
-                                                                                      \_|
-  Fichier:      HelloWorldNRF24L01-Recepteur
-  Description:  Réception d'un message "Hello World" depuis un autre arduino nano, via un NRF24L01
-  Auteur:       Passion-Électronique
-
-  Librairie utilisée : https://github.com/nRF24/RF24
-
-  Créé le 19.03.2021
-*/
 #include <SPI.h>
 #include <RF24.h>
 
-#define pinCE   7             // On associe la broche "CE" du NRF24L01 à la sortie digitale D7 de l'arduino
-#define pinCSN  8             // On associe la broche "CSN" du NRF24L01 à la sortie digitale D8 de l'arduino
-#define tunnel  "PIPE1"  // mettre 0 ?     // On définit le "nom de tunnel" (5 caractères) à travers lequel on va recevoir les données de l'émetteur
+#define pinCE     7         // On associe la broche "CE" du NRF24L01 à la sortie digitale D7 de l'arduino
+#define pinCSN    8         // On associe la broche "CSN" du NRF24L01 à la sortie digitale D8 de l'arduino
 
-RF24 radio(pinCE, pinCSN);    // Instanciation du NRF24L01
+#define tunnel1 "PIPE1"     // On définit un premier "nom de tunnel" (5 caractères), pour pouvoir envoyer des données à l'autre NRF24
+#define tunnel2 "PIPE2"     // On définit un second "nom de tunnel" (5 caractères), pour pouvoir recevoir des données de l'autre NRF24
 
-const byte adresse[6] = tunnel;       // Mise au format "byte array" du nom du tunnel
-char message[32];                     // Avec cette librairie, on est "limité" à 32 caractères par message
+RF24 radio(pinCE, pinCSN);  // Instanciation du NRF24L01
+
+const byte adresses[][6] = {tunnel1, tunnel2};    // Tableau des adresses de tunnel, au format "byte array"
+
+char msg_entrant[32];
+char msg_sortant;
 
 void setup() {
-  // Initialisation du port série (pour afficher les infos reçues, sur le "Moniteur Série" de l'IDE Arduino)
+  // bus série
   Serial.begin(9600);
-  Serial.println("Récepteur NRF24L01");
-  Serial.println("");
-
-  // Partie NRF24
-  radio.begin();                      // Initialisation du module NRF24
-  radio.openReadingPipe(0, adresse);  // Ouverture du tunnel en LECTURE, avec le "nom" qu'on lui a donné
-  radio.setPALevel(RF24_PA_MIN);      // Sélection d'un niveau "MINIMAL" pour communiquer (pas besoin d'une forte puissance, pour nos essais)
-  radio.startListening();             // Démarrage de l'écoute du NRF24 (signifiant qu'on va recevoir, et non émettre quoi que ce soit, ici)
+  // antenne RF
+  radio.begin();                           // Initialisation du module NRF24
+  radio.openWritingPipe(adresses[0]);      // Ouverture du "tunnel1" en ÉCRITURE
+  radio.openReadingPipe(1, adresses[1]);   // Ouverture du "tunnel2" en LECTURE
+  radio.setPALevel(RF24_PA_MIN);           // Sélection d'un niveau "MINIMAL" pour communiquer (pas besoin d'une forte puissance, pour nos essais)
+  Serial.println("Setup terminé.");
 }
 
 void loop() {
-  // On vérifie à chaque boucle si un message est arrivé
-  if (radio.available()) {
-    radio.read(&message, sizeof(message));                        // Si un message vient d'arriver, on le charge dans la variable "message"
-    Serial.print("Message reçu : "); Serial.println(message);     // … et on l'affiche sur le port série !
+  // ******** ENVOI / RECEPTION BUS SERIE ********
+  radio.stopListening();                                                  // On commence par arrêter le mode écoute, pour pouvoir émettre les données
+  //Serial.println("écriture RF");
+  if(Serial.available()) {                                                // S'il y a quelque chose de reçu sur le bus série ...
+    while(Serial.available()>0){                                          // ...on écoute le bus série
+      msg_sortant = (char)Serial.read();                                  // lecture bus série
+      radio.write(&msg_sortant, sizeof(msg_sortant));                     // … et envoi à l'autre arduino, via le NRF24.
+      delay(20); // essayer de diminuer autant que faire se peut
+    }
   }
+  Serial.println("fin écriture RF");
+  delay(5);                                                               // avec une petite pause, avant de passer à la suite
+
+  // ******** RÉCEPTION RF / ENVOI BUS SERIE ********
+  radio.startListening();                                                 // On commence par arrêter le mode envoi, pour pouvoir réceptionner des données
+  //Serial.println("lecture RF");
+  if(radio.available()) {                                                 // Si une donnée a été reçue en RF
+    while(radio.available()){                                             // ... on écoute la RF
+      radio.read(&msg_entrant, sizeof(msg_entrant));                      // Lecture des données reçues, une par une ...
+      Serial.print(String(msg_entrant));                                  // ... et renvoi sur le bus série.
+      delay(20);
+    }
+    delay(20);                                                            // avec une petite pause, avant de reboucler
+  }
+  //Serial.println("fin lecture RF");
+  delay(5);
 }
