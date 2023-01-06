@@ -110,7 +110,7 @@ void updateSendState(){
       if(strlen(msgSortant) >> 5 == packetCount) radioSendState = WAITING_CONF_END;
       ++packetCount;
     }
-    else if(radioSendState == WAITING_CONF_END){
+    else{ //radioSendState == WAITING_CONF_END
       sendPacket(msgEndExchange);
     }
   }
