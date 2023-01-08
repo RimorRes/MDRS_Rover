@@ -34,6 +34,9 @@ class PIN_spec
 
     const int PIN_RF_CE = 4; // soudé
     const int PIN_RF_CSN = 53; // à verifier
+    // PIN_RF_SCK = 52; // Je suppose. Pas vérifié.
+    // PIN_RF_MISO = 50; // Je suppose. Pas vérifié.
+    // PIN_RF_MOSI = 51; // Je suppose. Pas vérifié.
     
     const int PIN_SCL = 21; // soudé
     const int PIN_SDA = 20; // soudé
@@ -87,7 +90,7 @@ class Rover_config
 
   private:
     const Point _origineAbsolue = Point(0,0);
-    const Point _centreRepere = Point(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05));// = _limiteSO : l'origine du repère sur la carte.
+    const Point _centreRepere = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05), _origineAbsolue);// = _limiteSO : l'origine du repère sur la carte.
     const Point _limiteSO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 22.90), -convertDegMinSecToDecimal(110, 47, 23.05), _centreRepere); // 38°24'22.90"N, 110°47'23.05"O
     const Point _limiteNO = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.11), -convertDegMinSecToDecimal(110, 47, 23.74), _centreRepere); // 38°24'42.11"N, 110°47'23.74"O
     const Point _limiteNE = convertSphereToPlan(convertDegMinSecToDecimal(38, 24, 42.55), -convertDegMinSecToDecimal(110, 47, 5.81), _centreRepere); // 38°24'42.55"N, 110°47'5.81"O
