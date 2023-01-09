@@ -43,6 +43,7 @@ void setup() {
   Serial.println("Setup terminé.");
 }
 
+boolean youpi = true;
 void loop(){
   if(msgReceived){
     msgReceived = false;
@@ -50,6 +51,11 @@ void loop(){
     updateSendStateOnMsg();
   }
   updateSendState();
+  if (youpi){
+    youpi = false;
+    char msg[8]= "youpi !";
+    sendMsg(msg);
+  }
 }
 
 void updateReceiveStateOnMsg(){
