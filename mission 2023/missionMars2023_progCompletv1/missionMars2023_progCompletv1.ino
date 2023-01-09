@@ -163,7 +163,8 @@ Ultrasonic ultrasonic_1(myPINs.PIN_detectObst1_Trig, myPINs.PIN_detectObst1_Echo
 #include <RF24.h>
 #define tunnel  "PIPE1"       // On définit un "nom de tunnel" (5 caractères), pour pouvoir communiquer d'un NRF24 à l'autre
 RF24 radio(myPINs.PIN_RF_CE, myPINs.PIN_RF_CSN);    // Instanciation du NRF24L01 // déclarer extern en tête de RF.cpp
-const byte adresseAntenne[6] = tunnel;              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
+const byte adresseAntenneEcriture[6] = "PIPE2";              // Mise au format "byte array" du nom du tunnel (6 caractère à cause du caractère de fin de chaîne)
+const byte adresseAntenneLecture[6] = "PIPE1";
 #if !defined RF_H
 #include "RF.h"  // module codé par nous
 #define RF_H
@@ -259,10 +260,12 @@ float sensorData[5];  // pour plus de données : modifier aussi la fonction run(
 ********************************************************************************/
 void setup()
 {
-/*  // initialisation de la comm série USB (pour le raspberry)
+#if defined AFFICHAGE
+// initialisation de la comm série USB
   Serial.begin(9600); // pour afficher correctement le GPS, il faudrait 115200 ? A voir <---------------------------------------
   delay(1000);
-  Serial.println("coucou, setup()");*/
+  Serial.println("coucou, setup()");
+#endif
 /*  while (!Serial) {
     ; // On attend que le port série soit disponible
   }
@@ -314,7 +317,8 @@ void setup()
   
   // initialisation de l'antenne RF
   radio.begin();                      // Initialisation du module NRF24
-  radio.openWritingPipe(adresseAntenne);     // Ouverture du tunnel en ÉCRITURE, avec le "nom" qu'on lui a donné
+  radio.openWritingPipe(adresseAntenneEcriture);     // Ouverture du tunnel en ÉCRITURE, avec le "nom" qu'on lui a donné
+  radio.openReadingPipe(1,adresseAntenneLecture);     // Ouverture d'un des cinq tunnels en LECTURE, avec le "nom" qu'on lui a donné
   radio.setPALevel(RF24_PA_MIN);      // Sélection d'un niveau "MINIMAL" pour communiquer (pas besoin d'une forte puissance, pour nos essais)
   radio.stopListening();              // Arrêt de l'écoute du NRF24 (signifiant qu'on va émettre, et non recevoir, ici)
 #ifdef AFFICHAGE
@@ -372,18 +376,46 @@ void loop()
   // ------------
   
   // if(j'ai reçu quelque chose) {veille = false;}
+  String message = "coucou, c'est moi !";
+  radio.startListening();              // Début écoute du NRF24
+  delay(20);
+  Serial.println("J'écoute.");
+  char msg[32];
+  if(radio.available()){
+    //while(radio.available()){
+      radio.read(&msg, sizeof(msg));
+      Serial.print("Je suis dans le while : message reçu = ");
+      Serial.println(String(msg));
+      delay(20);
+    //}
+    delay(20);
+  } else {
+    Serial.println("Rien sur l'antenne.");
+  }
+  radio.stopListening();              // Arrêt de l'écoute du NRF24
+  Serial.println("J'arrête d'écouter.");
+  String ordre = "1_";
+  if(String(msg)!=message){
+    ordre += message;
+  } else {
+    ordre += "Bien reçu.";    
+  }
+  ordre += ";";
+  Run(ordre);
+  delay(2000);
+  
   if(veille){return;}
   
   // actualisation position
   // ----------------------
 
-  float *positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
+  /*float *positionNouvelle = positionGPSNouvelle();  // demande au GPS une latitude et une longitude absolues
   float latitudeNouvelle = positionNouvelle[0];
   float longitudeNouvelle = positionNouvelle[1];
   latitudeBuffer.addData(latitudeNouvelle);
   longitudeBuffer.addData(longitudeNouvelle);
   positionGPS = calculePositionActuelle(latitudeBuffer, longitudeBuffer);
-  chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin
+  chemin.actualiser(positionGPS); // situe la position actuelle par rapport aux positions intermédiaires du chemin*/
   
   // tests
   // -----
@@ -395,7 +427,7 @@ if (OK_init_Tint) {
     ;
 }
 
-  // test distance obstacle
+/*  // test distance obstacle
   int dist_1 = ultrasonic_1.Ranging(CM);
   //int dist_2 = ultrasonic_2.Ranging(CM);
 #ifdef AFFICHAGE
@@ -409,7 +441,7 @@ if (OK_init_Tint) {
     obstacles.addObstacle(P, rover_config.distanceMin);
     chemin.addPoint(chemin.getNumeroPointActuel(), obstacles.cheminCorrection(P, rover_config.distanceMin, directionRover));
   }
-
+*/
 /*  // test tension alimentation
   float tension = getTensionAlim();
   //Serial.println("tension d'alimentation moteur = " + String(tension) + " V");
@@ -425,11 +457,11 @@ if (OK_init_Tint) {
   Serial.println("fin du message");Serial.println(" ");
 #endif
 
-  testGPS();  // ceci n'est pas un test à faire à chaque cycle, mais un intermédiaire pour tester le bon fonctionnement du GPS
+  //testGPS();  // ceci n'est pas un test à faire à chaque cycle, mais un intermédiaire pour tester le bon fonctionnement du GPS
   
   // déplacement
   // -----------
-  String chaineOrdresMarche = chemin.goToNext();  // génère les ordres de marche pour atteindre le point intermédiaire suivant
+  /*String chaineOrdresMarche = chemin.goToNext();  // génère les ordres de marche pour atteindre le point intermédiaire suivant
   //  Serial.println(chaineOrdresMarche);
   RunChaineOrdres(chaineOrdresMarche);  // exécution des ordres de marche
   messageRF += "Hello world !";
@@ -437,7 +469,7 @@ if (OK_init_Tint) {
   monOrdre += "1_"; monOrdre += messageRF; monOrdre += ";";
   Run(monOrdre);
   messageRF ="";
-  obstacles.updateObstaclesListe();
+  obstacles.updateObstaclesListe();*/
 
   // mise à jour des données capteur
   // -------------------------------
@@ -447,7 +479,7 @@ if (OK_init_Tint) {
   sensorData[2]=0;
   sensorData[3]=0;
   sensorData[4]=0;
-  
+
   delay(500);  // Wait 1000ms // bien le temps des tests, mais ça peut être réduit ensuite. jusqu'à zéro ? déjà 100 serait plus fluide.
 } // FIN DE LOOP()
 

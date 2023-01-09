@@ -11,7 +11,7 @@
 #endif
 
 boolean emettreMessage(String message){
-  int nbrCaracteresMax = 31; // déterminé empiriquement (36 en principe !)
+  int nbrCaracteresMax = 31; // déterminé empiriquement (32 en principe !)
   int nbrPhrases = int(message.length() / nbrCaracteresMax) +1;
   String phrase;
   for (int i=0;i<nbrPhrases;i++){
@@ -32,39 +32,52 @@ boolean emettreMessage(String message){
 }
 
 String RFpull(){
-//  A CODER
-  return "";
+  String reception;
+  char entrant[32];
+  if(radio.available()){
+    radio.read(entrant, sizeof(entrant));
+  }
+  reception = String(entrant);
+  return reception;
 }
 
-void RFpush(String phrase){
-//  A CODER
+void RFpush(String envoi){
+  char paquet[32];
+  envoi.toCharArray(paquet,sizeof(*paquet));
+  radio.stopListening();
+  radio.write(paquet, sizeof(*paquet));
+  delay(5); // Delai à determiner plus précisement
+  radio.startListening();
   return;
 }
 
-String recupererMessageRF(){
+/*String recupererMessageRF(){
   int nbrCaractereMax = 31; // identique emettreMessage()
   String phrase = "";
   String message = "";
 //  A CODER
   return message;
-}
+}*/
 
 String ecouterAntenneRF(){
   int dureeAttente = 1000;  // en millisecondes
-  int TIMEOUT = 1000; // durée max de surveillance de l'antenne
+  //int TIMEOUT = 1000; // durée max de surveillance de l'antenne
   String reception = RFpull();  // écoute
   if (reception =="A"){ // vérifier que le message commence par "A" permet d'éviter de transmettre de mauvaise instructions si le début du message s'est perdu
-    // la fin du message n'est pas vérifiée, ce qui est un défaut.
     RFpush("R");  // on répond qu'on est prêt
     delay(dureeAttente);
     //Serial.setTimeout(TIMEOUT); // le temps au bout duquel on arrête de surveiller le bus
-    //while (Serial.available()){ // tant que le bus n'est pas vide...
-      //reception = serialPull(); // on lit une instruction
-      //Run(reception); // et on exécute l'instruction
-    //} // le bus est vide
+    while (radio.available()){    //  tant que le bus n'est pas vide...
+      reception = RFpull();       // on lit une instruction
+      if(reception == "F"){       // Si c'est la fin on arrête d'écouter.
+        RFpush("F");
+        break;
+      }
+      Run(reception);             // Sinon c'est qu'on a reçu une instruction, et on l'exécute.
+    } // le bus est vide, maintenant
   } // si ça ne commençait pas par "A" on n'a rien fait
   //return;
 
-  String messageRF = recupererMessageRF();
-  return messageRF;
+  //String messageRF = recupererMessageRF();
+  return "";//messageRF;
 }
